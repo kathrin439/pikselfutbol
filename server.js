@@ -43,7 +43,7 @@ const SY = [
 // OYUNCU FİZİK AYARLARI
 const PLAYER_CONFIG = {
   radius: 22.5,          // Oyuncu diskinin yarıçapı
-  acceleration: 0.4,  // Tuşa basıldığında hızlanma oranı
+  acceleration: 0.38,  // Tuşa basıldığında hızlanma oranı
   damping: 0.95,       // SÜRTÜNME (0.88 = Buzda kaymayı engeller, tok tutar)
   maxSpeed: 7.0        // Maksimum hız sınırı
 };
