@@ -27,7 +27,7 @@ const MAX = 10;                          // takım başı oyuncu
 const LIMIT = 5;                         // gol limiti
 const MATCH_TICKS = 5 * 60 * 60;         // 5 dakika (60 tick/sn)
 const STEP = 1000 / 60;
-const KICK = 10.8, KICK_RANGE = 11.5, E = 0.5; // şut gücü, genişletilmiş şut menzili, sekme katsayısı
+const KICK = 11.5, KICK_RANGE = 13.5, E = 0.5; // şut gücü, genişletilmiş şut menzili, sekme katsayısı
 const POSTS = [[0, GY1], [0, GY2], [W, GY1], [W, GY2]];
 const SX = [
   W / 2 - 100, W / 2 - 200, W / 2 - 200, 
@@ -43,9 +43,9 @@ const SY = [
 // OYUNCU FİZİK AYARLARI
 const PLAYER_CONFIG = {
   radius: 22.5,          // Oyuncu diskinin yarıçapı
-  acceleration: 0.37,  // Tuşa basıldığında hızlanma oranı
-  damping: 0.88,       // SÜRTÜNME (0.88 = Buzda kaymayı engeller, tok tutar)
-  maxSpeed: 8.5        // Maksimum hız sınırı
+  acceleration: 0.4,  // Tuşa basıldığında hızlanma oranı
+  damping: 0.95,       // SÜRTÜNME (0.88 = Buzda kaymayı engeller, tok tutar)
+  maxSpeed: 7.0        // Maksimum hız sınırı
 };
 
 // ---------- Oyun durumu ----------
