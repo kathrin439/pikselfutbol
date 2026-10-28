@@ -54,6 +54,7 @@ const ball = { x: W / 2, y: H / 2, vx: 0, vy: 0, r: BR, im: 1, d: 0.98, lastTouc
 let nid = 0, ord = 0, cnt = [0, 0, 0];
 let sc = [0, 0], tl = MATCH_TICKS, ot = false;
 let ph = 0, pt = 0, winner = 0, scorer = '';
+
 // ---------- Modifier Çarkı ----------
 const MODIFIERS = [
   'fire',
@@ -262,7 +263,7 @@ function step() {
         const totalGoals = sc[0] + sc[1];
       
         // Her golde önce önceki modifier kaldırılır.
-        if (totalGoals % 3 === 0) {
+        if (totalGoals % 2 === 0) {
           const index = Math.floor(Math.random() * MODIFIERS.length);
           const modifier = MODIFIERS[index];
           const sequence = ++wheelSequence;
