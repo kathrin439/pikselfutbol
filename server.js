@@ -54,6 +54,30 @@ const ball = { x: W / 2, y: H / 2, vx: 0, vy: 0, r: BR, im: 1, d: 0.98, lastTouc
 let nid = 0, ord = 0, cnt = [0, 0, 0];
 let sc = [0, 0], tl = MATCH_TICKS, ot = false;
 let ph = 0, pt = 0, winner = 0, scorer = '';
+// ---------- Modifier Çarkı ----------
+const MODIFIERS = [
+  'fire',
+  'speed',
+  'shield',
+  'giant',
+  'reverse',
+  'magnet',
+  'invisible',
+  'lowgravity'
+];
+
+let activeModifier = null;
+let wheelPaused = false;
+let wheelSequence = 0;
+
+function setModifier(modifier) {
+  activeModifier = modifier;
+  ball.r = modifier === 'giant' ? BR * 1.65 : BR;
+
+  io.emit('modifier_state', {
+    modifier: activeModifier
+  });
+}
 
 const list = t => [...players.values()].filter(p => p.t === t).sort((a, b) => a.ord - b.ord);
 
@@ -127,28 +151,75 @@ function collide(a, b) {
     a.vx -= j * a.im * nx; a.vy -= j * a.im * ny;
     b.vx += j * b.im * nx; b.vy += j * b.im * ny;
   }
+  // Kalkan: top bir oyuncuya çarptığında topun hızı azaltılır.
+  if (a.n && b === ball && activeModifier === 'shield') {
+    ball.vx *= 0.55;
+    ball.vy *= 0.55;
+  }
 }
 
 function endMatch() { ph = 2; pt = 420; winner = sc[0] > sc[1] ? 1 : 2; }
 
 function step() {
+  if (wheelPaused) return;
   const act = [];
   players.forEach(p => {
     if (!p.t) return;
     act.push(p);
     let ix = (p.in & 8 ? 1 : 0) - (p.in & 4 ? 1 : 0);
     let iy = (p.in & 2 ? 1 : 0) - (p.in & 1 ? 1 : 0);
+
+    if (activeModifier === 'reverse') {
+      ix = -ix;
+      iy = -iy;
+    }
+
     const l = Math.hypot(ix, iy);
-    if (l) { ix /= l; iy /= l; }
-    const a = PLAYER_CONFIG.acceleration;
-    p.vx += ix * a; p.vy += iy * a;
+    if (l) {
+      ix /= l;
+      iy /= l;
+    }
+
+    const speedMultiplier = activeModifier === 'speed' ? 1.45 : 1;
+    const a = PLAYER_CONFIG.acceleration * speedMultiplier;
+
+    p.vx += ix * a;
+    p.vy += iy * a;
   });
+
+  // Mıknatıs: top, yakınındaki oyuncuya doğru çekilir.
+  if (activeModifier === 'magnet' && act.length) {
+    let nearest = null;
+    let nearestDistance = Infinity;
+
+    for (const p of act) {
+      const dx = p.x - ball.x;
+      const dy = p.y - ball.y;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = { dx, dy, distance };
+      }
+    }
+
+    if (nearest && nearest.distance > 0 && nearest.distance < 260) {
+      ball.vx += (nearest.dx / nearest.distance) * 0.16;
+      ball.vy += (nearest.dy / nearest.distance) * 0.16;
+    }
+  }
 
   [ball, ...act].forEach(obj => {
     obj.x += obj.vx;
     obj.y += obj.vy;
-    obj.vx *= (obj.d !== undefined ? obj.d : PLAYER_CONFIG.damping);
-    obj.vy *= (obj.d !== undefined ? obj.d : PLAYER_CONFIG.damping);
+  
+    const damping =
+      obj === ball && activeModifier === 'lowgravity'
+        ? 0.995
+        : (obj.d !== undefined ? obj.d : PLAYER_CONFIG.damping);
+  
+    obj.vx *= damping;
+    obj.vy *= damping;
   });
 
   act.forEach(p => {
@@ -157,8 +228,10 @@ function step() {
         const dx = ball.x - p.x, dy = ball.y - p.y, dist = Math.hypot(dx, dy);
         if (dist > 0 && dist <= PR + BR + KICK_RANGE) {
           const angle = Math.atan2(dy, dx);
-          ball.vx += Math.cos(angle) * KICK;
-          ball.vy += Math.sin(angle) * KICK;
+          const kickMultiplier = activeModifier === 'fire' ? 1.75 : 1;
+
+          ball.vx += Math.cos(angle) * KICK * kickMultiplier;
+          ball.vy += Math.sin(angle) * KICK * kickMultiplier;
           p.lock = true;
           ball.lastTouch = p.n;
           io.emit('k', p.id);
@@ -185,7 +258,46 @@ function step() {
         sc[g - 1]++;
         winner = g;
         scorer = ball.lastTouch || '';
-        if (ot || sc[g - 1] >= LIMIT) endMatch(); else { ph = 1; pt = 150; }
+      
+        const totalGoals = sc[0] + sc[1];
+      
+        // Her golde önce önceki modifier kaldırılır.
+        if (totalGoals % 3 === 0) {
+          const index = Math.floor(Math.random() * MODIFIERS.length);
+          const modifier = MODIFIERS[index];
+          const sequence = ++wheelSequence;
+      
+          wheelPaused = true;
+          setModifier(modifier);
+      
+          // Bütün istemciler aynı sonucu ve çark sırasını alır.
+          io.emit('modifier_wheel', {
+            modifier,
+            index,
+            goalCount: totalGoals,
+            duration: 1500
+          });
+      
+          setTimeout(() => {
+            if (sequence !== wheelSequence) return;
+      
+            wheelPaused = false;
+      
+            io.emit('modifier_applied', {
+              modifier,
+              goalCount: totalGoals
+            });
+          }, 1500);
+        } else {
+          setModifier(null);
+        }
+      
+        if (ot || sc[g - 1] >= LIMIT) {
+          endMatch();
+        } else {
+          ph = 1;
+          pt = 150;
+        }
       }
     }
   } else if (--pt <= 0) {
@@ -199,7 +311,18 @@ const r1 = v => Math.round(v * 10) / 10;
 function snapshot() {
   const p = [];
   players.forEach(q => { if (q.t) p.push([q.id, r1(q.x), r1(q.y), q.in & 16 ? 1 : 0]); });
-  io.volatile.emit('s', { p, b: [r1(ball.x), r1(ball.y)], s: sc, t: Math.ceil(tl / 60), ph, w: winner, ot, sc_name: scorer });
+  io.volatile.emit('s', {
+    p,
+    b: [r1(ball.x), r1(ball.y)],
+    s: sc,
+    t: Math.ceil(tl / 60),
+    ph,
+    w: winner,
+    ot,
+    sc_name: scorer,
+    mod: activeModifier,
+    br: ball.r
+  });
 }
 
 let last = Date.now(), acc = 0;

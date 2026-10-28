@@ -147,3 +147,201 @@ body::after {
     opacity: 0.5;
   }
 }
+
+/* ---------- Piksel Futbol Modifier Çarkı ---------- */
+
+#modifier-status {
+  position: fixed;
+  top: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: none;
+  padding: 8px 12px;
+  border: 2px solid var(--gold);
+  background: #04100a;
+  color: var(--gold);
+  box-shadow: 4px 4px 0 #000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#modifier-status.active {
+  display: block;
+  animation: modifier-status-in .2s steps(3) both;
+}
+
+@keyframes modifier-status-in {
+  from { opacity: 0; transform: translate(-50%, 5px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+#modifier-wheel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .78);
+}
+
+#modifier-wheel-modal.show {
+  display: flex;
+  animation: wheel-overlay-in .16s steps(3) both;
+}
+
+@keyframes wheel-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modifier-wheel-panel {
+  width: min(410px, 94vw);
+  padding: 22px 18px;
+  border: 4px solid var(--line);
+  background: #06180d;
+  box-shadow: 8px 8px 0 #000, 0 0 24px rgba(255, 225, 77, .15);
+  text-align: center;
+}
+
+.modifier-wheel-kicker {
+  margin-bottom: 12px;
+  color: var(--gold);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+#modifier-wheel-title {
+  margin-bottom: 22px;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(13px, 3vw, 19px);
+  line-height: 1.7;
+}
+
+.modifier-wheel-stage {
+  position: relative;
+  width: min(260px, 68vw);
+  aspect-ratio: 1;
+  margin: 0 auto 22px;
+}
+
+#modifier-wheel {
+  position: absolute;
+  inset: 8px;
+  overflow: hidden;
+  border: 5px solid #fff;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ff4d4d 0deg 45deg,
+    #174d91 45deg 90deg,
+    #ffe14d 90deg 135deg,
+    #288548 135deg 180deg,
+    #a64dff 180deg 225deg,
+    #ff8c42 225deg 270deg,
+    #26b9b0 270deg 315deg,
+    #3d8bff 315deg 360deg
+  );
+  box-shadow: 0 0 0 4px #000, 0 0 0 7px var(--gold);
+  transform: rotate(0deg);
+  will-change: transform;
+}
+
+#modifier-wheel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 43.5deg,
+    rgba(0, 0, 0, .9) 43.5deg 45deg
+  );
+}
+
+.modifier-wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 78px;
+  height: 78px;
+  transform: translate(-50%, -50%);
+  border: 4px solid #000;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #06180d;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  line-height: 1.7;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+.modifier-wheel-pointer {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-top: 25px solid var(--gold);
+  filter: drop-shadow(2px 2px 0 #000);
+}
+
+#modifier-wheel-result {
+  min-height: 25px;
+  color: var(--gold);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(11px, 2.6vw, 15px);
+  line-height: 1.8;
+}
+
+.modifier-wheel-subtitle {
+  margin-top: 12px;
+  color: var(--line);
+  opacity: .7;
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+}
+
+#modifier-wheel-modal.result .modifier-wheel-panel {
+  animation: modifier-win .25s steps(3) both;
+  border-color: var(--gold);
+}
+
+@keyframes modifier-win {
+  0% { transform: scale(.96); }
+  60% { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 760px) {
+  #modifier-status {
+    top: 100px;
+    max-width: 95vw;
+    white-space: normal;
+    font-size: 8px;
+  }
+
+  .modifier-wheel-panel {
+    padding: 18px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #modifier-status.active,
+  #modifier-wheel-modal.show,
+  #modifier-wheel-modal.result .modifier-wheel-panel {
+    animation: none;
+  }
+}

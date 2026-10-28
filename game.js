@@ -25,7 +25,36 @@
   let cfg = null, me = 0, dpr = 1, vw = 0, vh = 0, scale = 1, ox = 0, oy = 0;
   let kb = 0, mk = false, sent = 0, bannerKey = '';
   let roster = new Map(), ents = new Map(), rings = [];
-  const ball = { x: 0, y: 0, tx: 0, ty: 0, rot: 0, ok: false };
+  const ball = { x: 0, y: 0, tx: 0, ty: 0, rot: 0, r: 0, ok: false };
+  let activeModifier = null;
+  let wheelHideTimer = null;
+
+  const MODIFIER_LABELS = {
+    fire: 'ATEŞLİ ŞUT',
+    speed: 'HIZ',
+    shield: 'SÜPER KALKAN',
+    giant: 'DEV TOP',
+    reverse: 'TERS KONTROL',
+    magnet: 'MIKNATIS',
+    invisible: 'GÖRÜNMEZ TOP',
+    lowgravity: 'HAFİF TOP'
+  };
+
+  function updateModifierStatus() {
+    const status = $('modifier-status');
+    if (!status) return;
+
+    if (!activeModifier) {
+      status.classList.remove('active');
+      status.textContent = '';
+      return;
+    }
+
+  status.textContent =
+    'AKTİF GÜÇ: ' + (MODIFIER_LABELS[activeModifier] || activeModifier);
+
+  status.classList.add('active');
+}
   const nick = $('nick');
 
   if (document.fonts) ['700 13px "Chakra Petch"', '8px "Press Start 2P"'].forEach(f => document.fonts.load(f));
@@ -117,6 +146,75 @@
   // ---------- Socket Dinleyicileri ----------
   sock.on('connect', () => $('off') &&$('off').classList.remove('on'));
   sock.on('disconnect', () => { $('off') &&$('off').classList.add('on'); ents.clear(); });
+  // ---------- Modifier Çarkı ----------
+  sock.on('modifier_wheel', data => {
+    const modal = $('modifier-wheel-modal');
+    const wheel = $('modifier-wheel');
+    const title = $('modifier-wheel-title');
+    const result = $('modifier-wheel-result');
+
+    if (!modal || !wheel || !title || !result) return;
+
+    if (wheelHideTimer) {
+      clearTimeout(wheelHideTimer);
+      wheelHideTimer = null;
+    }
+
+    modal.classList.remove('result');
+    modal.classList.add('show');
+
+    title.textContent = 'MODIFIER ÇARKI';
+    result.textContent = 'ŞANSINI DENE!';
+
+    // Her dönüşte animasyonu baştan başlat.
+    wheel.style.transition = 'none';
+    wheel.style.transform = 'rotate(0deg)';
+    void wheel.offsetWidth;
+
+    const index = Number.isInteger(data.index) ? data.index : 0;
+
+    requestAnimationFrame(() => {
+      // Dört tam tur ve seçilen dilime göre bitiş açısı.
+      const rotation = 1440 + ((360 - (index * 45 + 22.5) + 360) % 360);
+
+      wheel.style.transition =
+        'transform 1.35s cubic-bezier(.12,.75,.12,1)';
+
+      wheel.style.transform = `rotate(${rotation}deg)`;
+    });
+  });
+
+sock.on('modifier_applied', data => {
+  activeModifier = data.modifier;
+  updateModifierStatus();
+
+  const modal = $('modifier-wheel-modal');
+  const title = $('modifier-wheel-title');
+  const result = $('modifier-wheel-result');
+
+  if (title) title.textContent = 'MODIFIER KAZANILDI!';
+  if (result) {
+    result.textContent = MODIFIER_LABELS[data.modifier] || data.modifier;
+  }
+
+  if (modal) modal.classList.add('result');
+
+  if (wheelHideTimer) clearTimeout(wheelHideTimer);
+
+  wheelHideTimer = setTimeout(() => {
+    if (modal) {
+      modal.classList.remove('show');
+      modal.classList.remove('result');
+    }
+
+    wheelHideTimer = null;
+  }, 950);
+});
+
+sock.on('modifier_state', data => {
+  activeModifier = data && data.modifier ? data.modifier : null;
+  updateModifierStatus();
+});
   
   sock.on('init', d => {
     cfg = d; 
@@ -182,6 +280,9 @@
     }
     for (const id of [...ents.keys()]) if (!seen.has(id)) ents.delete(id);
     ball.tx = d.b[0]; ball.ty = d.b[1];
+    activeModifier = d.mod || null;
+    ball.r = d.br || (cfg ? cfg.BR : 10);
+    updateModifierStatus();
     if (!ball.ok) { ball.x = ball.tx; ball.y = ball.ty; ball.ok = true; }
 
     if ($('rs'))$('rs').textContent = d.s[0];
@@ -399,7 +500,8 @@
   }
 
   function drawBall() {
-    const { BR } = cfg;
+    if (activeModifier === 'invisible') return;
+   const BR = ball.r || cfg.BR;
     ctx.fillStyle = 'rgba(0,0,0,.3)'; circ(ball.x + 2, ball.y + 4, BR); ctx.fill();
     circ(ball.x, ball.y, BR); ctx.fillStyle = '#fff'; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = '#111'; ctx.stroke();
