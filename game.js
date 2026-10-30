@@ -28,6 +28,9 @@
   const ball = { x: 0, y: 0, tx: 0, ty: 0, rot: 0, r: 0, ok: false };
   let ballVisible = true;
   let activeModifier = null;
+  let ballVx = 0, ballVy = 0;
+  const modifierParticles = [];
+  let lastModifierParticle = 0;
   let wheelHideTimer = null;
 
   const MODIFIER_LABELS = {
@@ -669,6 +672,125 @@ sock.on('modifier_state', data => {
     }
   }
 
+  // ---------- Modifier görsel efektleri ----------
+  function drawModifierEffects(now, dt) {
+    if (!activeModifier || !ball.ok) return;
+    const speed = Math.hypot(ballVx, ballVy);
+    const moving = speed > 1.15;
+    const angle = Math.atan2(ballVy, ballVx);
+    const BR = ball.r || cfg.BR;
+
+    // Hareket eden modifiyeli top için piksel parçacık izi.
+    if (moving && now - lastModifierParticle > (activeModifier === 'fire' ? 22 : 42)) {
+      lastModifierParticle = now;
+      const count = activeModifier === 'fire' ? 3 : 1;
+      for (let i = 0; i < count; i++) {
+        const colors = {
+          fire: ['#fff3a1', '#ffb52e', '#ff572e', '#b92718'],
+          speed: ['#e8ffff', '#7be7ff', '#38a8ff'],
+          reverse: ['#f1c7ff', '#bd72ff', '#7137c9'],
+          lowgravity: ['#e4caff', '#a78bfa', '#67e8f9']
+        };
+        const palette = colors[activeModifier] || ['#ffffff', '#ffe14d'];
+        modifierParticles.push({
+          x: ball.x - Math.cos(angle) * (BR * .7) + (Math.random() - .5) * 5,
+          y: ball.y - Math.sin(angle) * (BR * .7) + (Math.random() - .5) * 5,
+          vx: -ballVx * (activeModifier === 'fire' ? .12 : .2) + (Math.random() - .5) * 1.5,
+          vy: -ballVy * (activeModifier === 'fire' ? .12 : .2) + (Math.random() - .5) * 1.5,
+          life: activeModifier === 'fire' ? 330 : 250,
+          maxLife: activeModifier === 'fire' ? 330 : 250,
+          size: activeModifier === 'fire' ? 4 + Math.random() * 5 : 3 + Math.random() * 3,
+          color: palette[Math.floor(Math.random() * palette.length)],
+          type: activeModifier
+        });
+      }
+    }
+
+    for (let i = modifierParticles.length - 1; i >= 0; i--) {
+      const particle = modifierParticles[i];
+      particle.life -= dt * 1000;
+      particle.x += particle.vx * dt * 60;
+      particle.y += particle.vy * dt * 60;
+      if (particle.life <= 0) { modifierParticles.splice(i, 1); continue; }
+      const alpha = particle.life / particle.maxLife;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      if (particle.type === 'fire') {
+        ctx.shadowColor = particle.color; ctx.shadowBlur = 9;
+        ctx.fillStyle = particle.color;
+        const size = particle.size * alpha;
+        ctx.fillRect(Math.round(particle.x / 2) * 2, Math.round(particle.y / 2) * 2, size, size);
+      } else {
+        ctx.fillStyle = particle.color;
+        ctx.fillRect(Math.round(particle.x), Math.round(particle.y), particle.size * alpha, particle.size * alpha);
+      }
+      ctx.restore();
+    }
+    if (modifierParticles.length > 100) modifierParticles.splice(0, modifierParticles.length - 100);
+
+    ctx.save();
+    if (activeModifier === 'fire' && moving) {
+      ctx.translate(ball.x, ball.y); ctx.rotate(angle);
+      const length = Math.min(76, 20 + speed * 5);
+      const grad = ctx.createLinearGradient(-length, 0, 3, 0);
+      grad.addColorStop(0, 'rgba(255,55,15,0)');
+      grad.addColorStop(.55, 'rgba(255,105,20,.55)');
+      grad.addColorStop(1, 'rgba(255,235,120,.9)');
+      ctx.fillStyle = grad;
+      ctx.shadowColor = '#ff5a16'; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.moveTo(-length, -BR * .42); ctx.lineTo(0, -BR * .5);
+      ctx.lineTo(5, 0); ctx.lineTo(0, BR * .5); ctx.lineTo(-length, BR * .42); ctx.closePath(); ctx.fill();
+    } else if (activeModifier === 'speed' && moving) {
+      ctx.translate(ball.x, ball.y); ctx.rotate(angle);
+      ctx.strokeStyle = 'rgba(125,225,255,.8)'; ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        const y = (i - 1.5) * 6;
+        ctx.beginPath(); ctx.moveTo(-18 - i * 5, y); ctx.lineTo(-42 - i * 8, y); ctx.stroke();
+      }
+      ctx.shadowColor = '#63dfff'; ctx.shadowBlur = 18;
+      ctx.strokeStyle = 'rgba(190,250,255,.65)'; ctx.lineWidth = 2;
+      circ(ball.x, ball.y, BR + 5 + Math.sin(now / 55) * 2); ctx.stroke();
+    } else if (activeModifier === 'giant') {
+      const pulse = Math.sin(now / 130) * 3;
+      ctx.strokeStyle = 'rgba(255,225,77,.65)'; ctx.lineWidth = 3;
+      ctx.setLineDash([7, 5]); ctx.lineDashOffset = -now / 35;
+      circ(ball.x, ball.y, BR + 7 + pulse); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255,225,77,.12)'; circ(ball.x, ball.y, BR + 4); ctx.fill();
+    } else if (activeModifier === 'reverse') {
+      ctx.translate(ball.x, ball.y); ctx.rotate(-now / 260);
+      ctx.strokeStyle = 'rgba(196,125,255,.85)'; ctx.lineWidth = 2;
+      ctx.setLineDash([4, 5]);
+      circ(0, 0, BR + 8 + Math.sin(now / 90) * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#d7a5ff';
+      for (let i = 0; i < 4; i++) ctx.fillRect(Math.cos(i * Math.PI / 2) * (BR + 12), Math.sin(i * Math.PI / 2) * (BR + 12), 3, 3);
+    } else if (activeModifier === 'magnet') {
+      const pulse = (now / 18) % 28;
+      ctx.strokeStyle = 'rgba(75,225,255,.48)'; ctx.lineWidth = 2;
+      circ(ball.x, ball.y, BR + 9 + pulse); ctx.stroke();
+      ctx.strokeStyle = 'rgba(75,225,255,.24)';
+      circ(ball.x, ball.y, BR + 37 + pulse); ctx.stroke();
+      ctx.fillStyle = 'rgba(75,225,255,.1)'; circ(ball.x, ball.y, BR + 5); ctx.fill();
+    } else if (activeModifier === 'invisible' && ballVisible) {
+      ctx.strokeStyle = 'rgba(130,245,255,.75)'; ctx.lineWidth = 2;
+      ctx.setLineDash([3, 4]); ctx.lineDashOffset = now / 25;
+      circ(ball.x, ball.y, BR + 5 + Math.sin(now / 100) * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (activeModifier === 'lowgravity') {
+      ctx.strokeStyle = 'rgba(186,160,255,.72)'; ctx.lineWidth = 2;
+      ctx.setLineDash([2, 5]); ctx.lineDashOffset = now / 30;
+      circ(ball.x, ball.y, BR + 8 + Math.sin(now / 170) * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      for (let i = 0; i < 3; i++) {
+        const a = now / 420 + i * TAU / 3;
+        ctx.fillStyle = '#c8b5ff';
+        ctx.fillRect(ball.x + Math.cos(a) * (BR + 13), ball.y + Math.sin(a) * (BR + 13), 3, 3);
+      }
+    }
+    ctx.restore();
+  }
+
   function drawBall() {
     if (activeModifier === 'invisible' && !ballVisible) return;
    const BR = ball.r || cfg.BR;
@@ -701,6 +823,8 @@ sock.on('modifier_state', data => {
       const px = ball.x, py = ball.y;
       if (Math.abs(ball.tx - px) + Math.abs(ball.ty - py) > 150) { ball.x = ball.tx; ball.y = ball.ty; }
       else { ball.x += (ball.tx - px) * f; ball.y += (ball.ty - py) * f; }
+      ballVx = dt > 0 ? (ball.x - px) / (dt * 60) : 0;
+      ballVy = dt > 0 ? (ball.y - py) / (dt * 60) : 0;
       ball.rot += (ball.x - px + ball.y - py) / cfg.BR;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -709,7 +833,7 @@ sock.on('modifier_state', data => {
       drawField();
       drawPlayers(now);
       drawRings(now);
-      if (ball.ok) drawBall();
+      if (ball.ok) { drawModifierEffects(now, dt); drawBall(); }
     }
     requestAnimationFrame(frame);
   }
