@@ -1,131 +1,48 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Piksel Futbol</title>
-  <link rel="icon" href="favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piksel Futbol</title><link rel="icon" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <meta name="keywords" content="piksel futbol, haxball remade, haxball piksel online">
-  <meta name="description" content="11-B Emirhan testing">
+  <link rel="stylesheet" href="style.css"><meta name="description" content="Piksel Futbol - retro online futbol oyunu">
 </head>
-
 <body>
-  <!-- Sağ alt köşe imza metni -->
   <div id="credit">11-B Emirhan Al. İyi oyunlar diler</div>
-  <!-- Admin Giriş / Panel Arayüzü -->
-  <div id="admin-modal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span class="close-btn" id="admin-close">&times;</span>
-    <h3>ADMIN PANELI</h3>
-    
-    <div id="admin-login-sec">
-      <input type="password" id="admin-pass" placeholder="Admin Şifresi" autocomplete="off">
-      <button id="admin-login-btn">Giriş Yap</button>
+  <div id="admin-modal" class="modal" style="display:none"><div class="modal-content">
+    <span class="close-btn" id="admin-close">&times;</span><h3>ADMIN PANELI</h3>
+    <div id="admin-login-sec"><input type="password" id="admin-pass" placeholder="Admin Şifresi" autocomplete="off"><button id="admin-login-btn">Giriş Yap</button></div>
+    <div id="admin-panel-sec" style="display:none">
+      <div class="admin-group"><h4>Maç Yönetimi</h4><button id="adm-reset-ball">Topu Sıfırla</button><button id="adm-reset-time">Süreyi Yenile (5 Dk)</button></div>
+      <div class="admin-group"><h4>Skor Ayarla</h4><button id="adm-score-red">+1 Kırmızı</button><button id="adm-score-blue">+1 Mavi</button></div>
+      <div class="admin-group"><h4>Oyuncu Listesi · Yönetim</h4><ul id="admin-player-list"></ul></div>
+      <div class="admin-group"><h4>Sunucu Duyurusu</h4><input type="text" id="adm-ann-text" placeholder="Duyuru mesajı..." maxlength="160"><button id="adm-ann-btn" class="wide">Duyuru Gönder</button></div>
     </div>
-
-    <div id="admin-panel-sec" style="display:none;">
-      <div class="admin-group">
-        <h4>Maç Yönetimi</h4>
-        <button id="adm-reset-ball">Topu Sıfırla</button>
-        <button id="adm-reset-time">Süreyi Yenile (5 Dk)</button>
-      </div>
-      <div class="admin-group">
-        <h4>Skör Ayarla</h4>
-        <button id="adm-score-red">+1 Kırmızı</button>
-        <button id="adm-score-blue">+1 Mavi</button>
-      </div>
-      <div class="admin-group">
-        <h4>Oyuncu Listesi & Kick</h4>
-        <ul id="admin-player-list"></ul>
-     </div>
-     <div class="admin-group">
-        <h4>Sunucu Duyurusu</h4>
-        <input type="text" id="adm-ann-text" placeholder="Duyuru mesajı..." maxlength="60" style="width: 100%; padding: 6px; background: #000; border: 1px solid var(--line); color: #fff; font-family: 'VT323', monospace; font-size: 16px; margin-bottom: 4px;">
-        <button id="adm-ann-btn" style="width: 100%;">Duyuru Gönder</button>
-      </div>
-   </div>
-  </div>
-  </div>
-  <!-- OYUNA GİRİŞ EKRANI -->
-  <div id="joinModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999;">
-    <div style="background: #222; padding: 30px; border-radius: 12px; text-align: center; border: 2px solid #488b49; color: white;">
-      <h2 style="font-family: 'Chakra Petch', sans-serif; margin-bottom: 20px;">SAHAYA ÇIK</h2>
-      <input type="text" id="joinNickInput" placeholder="Takma Adın (Nick)" maxlength="14" style="padding: 10px; font-size: 16px; border-radius: 6px; border: none; width: 80%; text-align: center; margin-bottom: 15px;">
-      <br>
-      <button id="joinBtn" style="padding: 12px 25px; font-size: 18px; background: #488b49; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">OYUNA KATIL</button>
+  </div></div>
+  <div id="joinModal"><div class="join-card"><h2>SAHAYA ÇIK</h2><input type="text" id="joinNickInput" placeholder="Takma Adın (Nick)" maxlength="14"><br><button id="joinBtn">OYUNA KATIL</button></div></div>
+  <div id="update-log-modal" role="dialog" aria-modal="true" aria-labelledby="update-log-title" style="display:none">
+    <div class="update-log-card">
+      <div class="update-log-top"><span>PIXEL FOOTBALL</span><span class="update-version">V1.1</span></div>
+      <h2 id="update-log-title">GÜNCELLEME NOTLARI</h2>
+      <p class="update-log-date">SON GÜNCELLEME · 30.10.2026</p>
+      <ul class="update-log-list">
+        <li><b>OYUN SOHBETİ</b><span>Oyuncular artık maç sırasında mesajlaşabilir.</span></li>
+        <li><b>KONTROLLER</b><span>Mobil dokunmatik tuşlar eklendi, arayüzde yazarken yanlışlıkla şut çekme sorunu giderildi.</span></li>
+        <li><b>MODIFIER ÇARKI</b><span>7 güçle uyumlu hâle getirildi.</span></li>
+        <li><b>ADMIN PANELİ</b><span>Oyuncu yönetimi ve maç araçları iyileştirildi.</span></li>
+        <li><b>GENEL DÜZELTMELER</b><span>Arayüz ve kullanım hataları giderildi. Babanız fenerbahçe</span></li>
+      </ul>
+      <button id="update-log-close" type="button">TAMAM, OYNAYALIM!</button>
+      <p class="update-log-foot">İYİ OYUNLAR ⚽</p>
     </div>
   </div>
   <canvas id="c"></canvas>
-
-  <header id="hud">
-    <div class="team red"><span>KIRMIZI</span><b id="rs">0</b></div>
-    <div id="clock"><span id="tm">05:00</span><small id="sub">&nbsp;</small></div>
-    <div class="team blue"><b id="bs">0</b><span>MAVİ</span></div>
-  </header>
-
-  <div id="banner"></div>
-  <!-- Aktif modifier göstergesi -->
-  <div id="modifier-status" aria-live="polite"></div>
-
-  <!-- Modifier çarkı -->
-  <div id="modifier-wheel-modal" aria-live="assertive">
-    <div class="modifier-wheel-panel">
-      <div class="modifier-wheel-kicker">PIXEL FOOTBALL</div>
-      <h2 id="modifier-wheel-title">MODIFIER ÇARKI</h2>
-
-      <div class="modifier-wheel-stage">
-        <div class="modifier-wheel-pointer"></div>
-        <div id="modifier-wheel">
-          <div class="modifier-wheel-center">PIXEL<br>POWER</div>
-        </div>
-      </div>
-
-      <div id="modifier-wheel-result">ŞANSINI DENE!</div>
-      <div class="modifier-wheel-subtitle">
-        İKİ TAKIM · AYNI GÜÇ
-      </div>
-    </div>
-  </div>
-  <!-- Aktif modifier göstergesi -->
-  <div id="modifier-status" aria-live="polite"></div>
-
-  <!-- Modifier çarkı -->
-  <div id="modifier-wheel-modal" aria-live="assertive">
-    <div class="modifier-wheel-panel">
-      <div class="modifier-wheel-kicker">PIXEL FOOTBALL</div>
-      <h2 id="modifier-wheel-title">MODIFIER ÇARKI</h2>
-
-      <div class="modifier-wheel-stage">
-        <div class="modifier-wheel-pointer"></div>
-        <div id="modifier-wheel">
-          <div class="modifier-wheel-center">PIXEL<br>POWER</div>
-        </div>
-      </div>
-
-      <div id="modifier-wheel-result">ŞANSINI DENE!</div>
-      <div class="modifier-wheel-subtitle">
-        İKİ TAKIM · AYNI GÜÇ
-      </div>
-    </div>
-  </div>
-
-  <footer id="foot">
-    <ul id="rl" class="list red"></ul>
-    <div id="mid">
-      <div id="role">BAĞLANIYOR…</div>
-      <input id="nick" maxlength="14" placeholder="takma adın" autocomplete="off" spellcheck="false">
-      <div id="hint">WASD / OKLAR: hareket · BOŞLUK / SOL TIK: şut</div>
-    </div>
-    <ul id="bl" class="list blue"></ul>
-  </footer>
-
+  <header id="hud"><div class="team red"><span>KIRMIZI</span><b id="rs">0</b></div><div id="clock"><span id="tm">05:00</span><small id="sub">İLK 5 GOL</small></div><div class="team blue"><b id="bs">0</b><span>MAVİ</span></div></header>
+  <div id="banner"></div><div id="modifier-status" aria-live="polite"></div>
+  <div id="modifier-wheel-modal" aria-live="assertive"><div class="modifier-wheel-panel"><div class="modifier-wheel-kicker">PIXEL FOOTBALL</div><h2 id="modifier-wheel-title">MODIFIER ÇARKI</h2><div class="modifier-wheel-stage"><div class="modifier-wheel-pointer"></div><div id="modifier-wheel"><div class="modifier-wheel-center">PIXEL<br>POWER</div></div></div><div id="modifier-wheel-result">ŞANSINI DENE!</div><div class="modifier-wheel-subtitle">İKİ TAKIM · AYNI GÜÇ</div></div></div>
+  <div id="touch-controls" aria-label="Dokunmatik kontroller"><div class="touch-pad"><button data-bit="1">▲</button><div><button data-bit="4">◀</button><button data-bit="2">▼</button><button data-bit="8">▶</button></div></div><button id="touch-kick" data-bit="16">ŞUT</button></div>
+  <section id="chat-panel"><div id="chat-header"><span>OYUN SOHBETİ</span><button id="chat-toggle" type="button">_</button></div><div id="chat-messages" role="log" aria-live="polite"></div><form id="chat-form"><input id="chat-input" type="text" maxlength="160" placeholder="Mesaj yaz..." autocomplete="off"><button type="submit">GÖNDER</button></form></section>
+  <footer id="foot"><ul id="rl" class="list red"></ul><div id="mid"><div id="role">BAĞLANIYOR…</div><input id="nick" maxlength="14" placeholder="takma adın" autocomplete="off" spellcheck="false"><div id="hint">WASD / OKLAR: hareket · BOŞLUK / SOL TIK: şut</div></div><ul id="bl" class="list blue"></ul></footer>
   <div id="off">Bağlantı koptu, yeniden bağlanılıyor…</div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="game.js"></script>
-</body>
-</html>
+  <script src="/socket.io/socket.io.js"></script><script src="game.js"></script>
+</body></html>

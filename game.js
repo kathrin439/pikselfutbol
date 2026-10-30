@@ -26,13 +26,13 @@
   let kb = 0, mk = false, sent = 0, bannerKey = '';
   let roster = new Map(), ents = new Map(), rings = [];
   const ball = { x: 0, y: 0, tx: 0, ty: 0, rot: 0, r: 0, ok: false };
+  let ballVisible = true;
   let activeModifier = null;
   let wheelHideTimer = null;
 
   const MODIFIER_LABELS = {
     fire: 'ATEŞLİ ŞUT',
     speed: 'HIZ',
-    shield: 'SÜPER KALKAN',
     giant: 'DEV TOP',
     reverse: 'TERS KONTROL',
     magnet: 'MIKNATIS',
@@ -82,9 +82,24 @@
     joinNickInput.addEventListener('keyup', e => e.stopPropagation());
   }
 
+  const updateLogModal = $('update-log-modal');
+  const updateLogClose = $('update-log-close');
+  function closeUpdateLog() {
+    if (updateLogModal) updateLogModal.style.display = 'none';
+  }
+  if (updateLogClose) updateLogClose.addEventListener('click', closeUpdateLog);
+  if (updateLogModal) updateLogModal.addEventListener('click', event => {
+    if (event.target === updateLogModal) closeUpdateLog();
+  });
+  addEventListener('keydown', event => {
+    if (event.key === 'Escape' && updateLogModal && updateLogModal.style.display !== 'none') closeUpdateLog();
+  });
+
   sock.on('joined_success', data => {
     me = data.id;
     if (joinModal) joinModal.style.display = 'none';
+    // Her başarılı katılımda güncelleme notlarını göster.
+    if (updateLogModal) updateLogModal.style.display = 'flex';
   });
 
   // ---------- Ses Efekti Üreteci ----------
@@ -117,19 +132,28 @@
   };
 
   addEventListener('keydown', e => { 
-    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
     const b = KEYS[e.code]; 
     if (b) { e.preventDefault(); kb |= b; send(); } 
   });
   
   addEventListener('keyup', e => { 
-    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
     const b = KEYS[e.code]; 
     if (b) { e.preventDefault(); kb &= ~b; send(); } 
   });
 
-  addEventListener('mousedown', e => { if (e.button === 0 && e.target !== nick) { mk = true; send(); } });
+  addEventListener('mousedown', e => { if (e.button === 0 && !e.target.closest('button, input, textarea, .modal, #chat-panel')) { mk = true; send(); } });
   addEventListener('mouseup', e => { if (e.button === 0) { mk = false; send(); } });
+  // Mobil dokunmatik yön ve şut tuşları; klavye fiziğiyle aynı input bitlerini kullanır.
+  const touchBits = new Map();
+  document.querySelectorAll('#touch-controls [data-bit]').forEach(button => {
+    const bit = Number(button.dataset.bit);
+    const down = event => { event.preventDefault(); touchBits.set(bit, true); kb |= bit; send(); };
+    const up = event => { event.preventDefault(); touchBits.delete(bit); if (![...touchBits.keys()].includes(bit)) kb &= ~bit; send(); };
+    button.addEventListener('pointerdown', down);
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => button.addEventListener(type, up));
+  });
   addEventListener('blur', () => { kb = 0; mk = false; send(); });
   addEventListener('contextmenu', e => e.preventDefault());
 
@@ -175,7 +199,8 @@
 
     requestAnimationFrame(() => {
       // Dört tam tur ve seçilen dilime göre bitiş açısı.
-      const rotation = 1440 + ((360 - (index * 45 + 22.5) + 360) % 360);
+      const slice = 360 / 7;
+      const rotation = 1440 + ((360 - (index * slice + slice / 2) + 360) % 360);
 
       wheel.style.transition =
         'transform 1.35s cubic-bezier(.12,.75,.12,1)';
@@ -252,17 +277,21 @@ sock.on('modifier_state', data => {
     if (isAdmin) {
       const admUl = $('admin-player-list');
       if (admUl) {
-        admUl.innerHTML = '';
+        admUl.textContent = '';
         a.forEach(([id, name]) => {
           const li = document.createElement('li');
-          li.innerHTML = `<span>${name}</span> <button class="kick-btn" data-id="${id}">At</button>`;
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = name;
+          const actions = document.createElement('span');
+          [['At', 'kick'], ['Kırmızı', 'team', 1], ['Mavi', 'team', 2], ['Sustur', 'mute'], ['Aç', 'unmute']].forEach(([label, type, team]) => {
+            const button = document.createElement('button');
+            button.className = type === 'kick' ? 'kick-btn' : '';
+            button.textContent = label;
+            button.addEventListener('click', () => sock.emit('admin_cmd', { type, targetId: String(id), team }));
+            actions.appendChild(button);
+          });
+          li.append(nameSpan, actions);
           admUl.appendChild(li);
-        });
-        document.querySelectorAll('.kick-btn').forEach(btn => {
-          btn.onclick = (e) => {
-            const targetId = e.target.getAttribute('data-id');
-            sock.emit('admin_cmd', { type: 'kick', targetId });
-          };
         });
       }
     }
@@ -280,6 +309,7 @@ sock.on('modifier_state', data => {
     }
     for (const id of [...ents.keys()]) if (!seen.has(id)) ents.delete(id);
     ball.tx = d.b[0]; ball.ty = d.b[1];
+    ballVisible = d.ballVisible !== false;
     activeModifier = d.mod || null;
     ball.r = d.br || (cfg ? cfg.BR : 10);
     updateModifierStatus();
@@ -312,6 +342,45 @@ sock.on('modifier_state', data => {
         }
       }
     }
+  });
+
+  // ---------- Oyun Sohbeti ----------
+  const chatForm = $('chat-form');
+  const chatInput = $('chat-input');
+  const chatMessages = $('chat-messages');
+  const chatPanel = $('chat-panel');
+  const chatToggle = $('chat-toggle');
+  function addChatMessage(item) {
+    if (!chatMessages || !item) return;
+    const row = document.createElement('div');
+    row.className = 'chat-line team-' + (item.team || 0);
+    const time = document.createElement('span');
+    time.className = 'chat-time';
+    time.textContent = new Date(item.time || Date.now()).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    const name = document.createElement('b');
+    name.textContent = (item.nick || 'Oyuncu') + ': ';
+    const message = document.createElement('span');
+    message.textContent = item.message || '';
+    row.append(time, name, message);
+    chatMessages.appendChild(row);
+    while (chatMessages.children.length > 40) chatMessages.firstChild.remove();
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  sock.on('chat_history', items => { if (chatMessages) chatMessages.textContent = ''; (items || []).forEach(addChatMessage); });
+  sock.on('chat_message', addChatMessage);
+  if (chatForm) chatForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const value = chatInput ? chatInput.value.trim() : '';
+    if (value) { sock.emit('chat_send', value); chatInput.value = ''; }
+    chatInput && chatInput.focus();
+  });
+  if (chatInput) {
+    chatInput.addEventListener('keydown', e => e.stopPropagation());
+    chatInput.addEventListener('keyup', e => e.stopPropagation());
+  }
+  if (chatToggle && chatPanel) chatToggle.addEventListener('click', () => {
+    chatPanel.classList.toggle('collapsed');
+    chatToggle.textContent = chatPanel.classList.contains('collapsed') ? '+' : '_';
   });
 
   // ---------- Admin Paneli Mantığı ----------
@@ -500,7 +569,7 @@ sock.on('modifier_state', data => {
   }
 
   function drawBall() {
-    if (activeModifier === 'invisible') return;
+    if (activeModifier === 'invisible' && !ballVisible) return;
    const BR = ball.r || cfg.BR;
     ctx.fillStyle = 'rgba(0,0,0,.3)'; circ(ball.x + 2, ball.y + 4, BR); ctx.fill();
     circ(ball.x, ball.y, BR); ctx.fillStyle = '#fff'; ctx.fill();
@@ -545,116 +614,3 @@ sock.on('modifier_state', data => {
   }
   requestAnimationFrame(frame);
 })();
-  // ---------- Admin Paneli Mantığı ----------
-  let isAdmin = false;
-  const modal = $('admin-modal');
-  const loginSec = $('admin-login-sec');
-  const panelSec = $('admin-panel-sec');
-
-  // Ctrl + Shift + A tuş kombinasyonuyla paneli aç/kapat
-  addEventListener('keydown', e => {
-    if (e.ctrlKey && e.shiftKey && e.code === 'KeyA') {
-      e.preventDefault();
-      modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
-    }
-  });
-
-  $('admin-close').onclick = () => modal.style.display = 'none';
-
-  $('admin-login-btn').onclick = () => {
-    const pass = $('admin-pass').value;
-    sock.emit('admin_login', pass);
-  };
-
-  sock.on('admin_auth', success => {
-    if (success) {
-      isAdmin = true;
-      loginSec.style.display = 'none';
-      panelSec.style.display = 'block';
-      alert('Admin girişi başarılı!');
-    } else {
-      alert('Hatalı şifre!');
-    }
-  });
-  // game.js - Admin duyuru input'una tuş çakışmasını önleyen dinleyicileri ekleyin
-  const annInput = $('adm-ann-text');
-  if (annInput) {
-  // Klavyedeki WASD, Ok tuşları ve Boşluk tuşunun oyuna gitmesini engeller
-    annInput.addEventListener('keydown', e => e.stopPropagation());
-    annInput.addEventListener('keyup', e => e.stopPropagation());
-  
-  // Enter tuşuna basıldığında duyuruyu direkt göndersin
-     annInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      $('adm-ann-btn').click();
-    }
-  });
-}
-  // Admin Buton İşlevleri
-  $('adm-reset-ball').onclick = () => sock.emit('admin_cmd', { type: 'reset_ball' });$('adm-reset-time').onclick = () => sock.emit('admin_cmd', { type: 'reset_time' });
-  $('adm-score-red').onclick = () => sock.emit('admin_cmd', { type: 'add_score', team: 1 });$('adm-score-blue').onclick = () => sock.emit('admin_cmd', { type: 'add_score', team: 2 });
-
-  // Kadro güncellendikçe admin panelindeki oyuncu listesini de tazele
-  sock.on('r', a => {
-    if (!isAdmin) return;
-    const ul = $('admin-player-list');
-    ul.innerHTML = '';
-    a.forEach(([id, name]) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${name}</span> <button class="kick-btn" data-id="${id}">At</button>`;
-      ul.appendChild(li);
-    });
-
-    document.querySelectorAll('.kick-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        // ID eşleşmesi için socket id'sini bulup kick komutu yolluyoruz
-        const targetId = e.target.getAttribute('data-id');
-        sock.emit('admin_cmd', { type: 'kick', targetId });
-      };
-    });
-  });
-  // ---------- Admin Duyuru Gönderme ----------
-  $('adm-ann-btn').onclick = () => {
-    const msg = $('adm-ann-text').value;
-    if (msg) {
-      sock.emit('admin_cmd', { type: 'announce', msg });
-      $('adm-ann-text').value = '';
-    }
-  };
-
-  // Duyuru Alındığında Ekranda Gösterme
-  sock.on('announcement', msg => {
-    const b = $('banner');
-    b.innerHTML = '<div>DUYURU</div><small></small>';
-    b.firstChild.textContent = 'DUYURU';
-    b.firstChild.style.color = '#ffe14d';
-    b.lastChild.textContent = msg;
-    b.className = 'show';
-
-    // 4 saniye sonra duyuruyu ekrandan kaldır
-    setTimeout(() => {
-      if (b.firstChild && b.firstChild.textContent === 'DUYURU') {
-        b.className = '';
-      }
-    }, 4000);
-  });
-
-  // Kadro listesinden kick butonuna basıldığında oyuncunun sayısal ID'sini iletme
-  sock.on('r', a => {
-    if (!isAdmin) return;
-    const ul = $('admin-player-list');
-    ul.innerHTML = '';
-    a.forEach(([id, name]) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${name}</span> <button class="kick-btn" data-id="${id}">At</button>`;
-      ul.appendChild(li);
-    });
-
-    document.querySelectorAll('.kick-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        const targetId = e.target.getAttribute('data-id');
-        sock.emit('admin_cmd', { type: 'kick', targetId });
-      };
-    });
-  });
-
