@@ -23,7 +23,7 @@
         </div>
         <div class="admin-columns">
           <section class="admin-group admin-match-group"><h4><span>01</span> MAÇ KONTROLÜ</h4>
-            <div class="admin-button-grid"><button id="adm-reset-ball">TOPU SIFIRLA</button><button id="adm-reset-time">SÜREYİ 5 DK YAP</button></div>
+            <div class="admin-button-grid"><button id="adm-reset-ball">TOPU SIFIRLA</button><button id="adm-reset-time">SÜREYİ 5 DK YAP</button><button id="adm-pause">MAÇI DURAKLAT</button><button id="adm-reset-match" class="admin-danger">MAÇI BAŞTAN BAŞLAT</button><button id="adm-clear-chat" class="admin-danger">SOHBETİ TEMİZLE</button></div>
           </section>
           <section class="admin-group"><h4><span>02</span> SKOR KONTROLÜ</h4>
             <div class="admin-score-row"><b class="admin-red-label">KIRMIZI</b><button id="adm-score-red-minus" class="admin-minus">−1</button><button id="adm-score-red">+1</button></div>
@@ -35,36 +35,23 @@
         <p id="admin-feedback" class="admin-feedback" aria-live="polite">Yönetim paneli aktif.</p>
       </div>
     </div>
-    </div></div>
-      <div id="joinModal">
-      <div class="join-card">
-        <div class="join-pixel-logo">⚽ PIXEL FOOTBALL</div>
-        <div class="join-divider"></div>
-
-        <span class="join-eyebrow">OYUNCU KAYDI / 001</span>
-        <h2>SAHAYA HOŞ GELDİN</h2>
-        <p class="join-description">Maça katılmadan önce kendine bir isim seç.</p>
-
-        <label for="joinNickInput">OYUNCU ADI</label>
-        <div class="join-input-wrap">
-          <span>▶</span>
-          <input
-            type="text"
-            id="joinNickInput"
-            placeholder="İsmini buraya yaz..."
-            maxlength="14"
-            autocomplete="off"
-          >
-        </div>
-
-        <button id="joinBtn">
-          <span>OYUNA KATIL</span>
-          <span>→</span>
-        </button>
-
-        <div class="join-bottom">WASD / OK TUŞLARI · SPACE = ŞUT</div>
+  </div></div>
+  <div id="joinModal">
+    <div class="join-card">
+      <div class="join-pixel-logo">⚽ PIXEL FOOTBALL</div>
+      <div class="join-divider"></div>
+      <span class="join-eyebrow">OYUNCU KAYDI / 001</span>
+      <h2>SAHAYA HOŞ GELDİN</h2>
+      <p class="join-description">Maça katılmadan önce kendine bir isim seç.</p>
+      <label for="joinNickInput">OYUNCU ADI</label>
+      <div class="join-input-wrap">
+        <span>▶</span>
+        <input type="text" id="joinNickInput" placeholder="İsmini buraya yaz..." maxlength="14" autocomplete="off">
       </div>
+      <button id="joinBtn"><span>OYUNA KATIL</span><span>→</span></button>
+      <div class="join-bottom">WASD / OK TUŞLARI · SPACE = ŞUT</div>
     </div>
+  </div>
   <div id="update-log-modal" role="dialog" aria-modal="true" aria-labelledby="update-log-title">
     <div class="update-log-card">
       <button id="update-log-close" class="update-log-x" type="button" aria-label="Güncelleme notlarını kapat">×</button>
@@ -90,11 +77,4 @@
   <footer id="foot"><ul id="rl" class="list red"></ul><div id="mid"><div id="role">BAĞLANIYOR…</div><input id="nick" maxlength="14" placeholder="takma adın" autocomplete="off" spellcheck="false"><div id="hint">WASD / OKLAR: hareket · BOŞLUK / SOL TIK: şut</div></div><ul id="bl" class="list blue"></ul></footer>
   <div id="off">Bağlantı koptu, yeniden bağlanılıyor…</div>
   <script src="/socket.io/socket.io.js"></script><script src="game.js"></script>
-  <div class="admin-button-grid">
-    <button id="adm-reset-ball">TOPU SIFIRLA</button>
-    <button id="adm-reset-time">SÜREYİ 5 DK YAP</button>
-    <button id="adm-pause">MAÇI DURAKLAT</button>
-    <button id="adm-reset-match" class="admin-danger">MAÇI BAŞTAN BAŞLAT</button>
-    <button id="adm-clear-chat" class="admin-danger">SOHBETİ TEMİZLE</button>
-  </div>
 </body></html>

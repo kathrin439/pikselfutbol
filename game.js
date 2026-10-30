@@ -479,28 +479,13 @@ sock.on('modifier_state', data => {
 
   if ($('adm-reset-ball'))$('adm-reset-ball').onclick = () => sock.emit('admin_cmd', { type: 'reset_ball' });
   if ($('adm-reset-time'))$('adm-reset-time').onclick = () => sock.emit('admin_cmd', { type: 'reset_time' });
-  if ($('adm-pause')) {
-    $('adm-pause').onclick = () => {
-      sock.emit('admin_cmd', { type: 'toggle_pause' });
-    };
-  }
-
-  if ($('adm-reset-match')) {
-    $('adm-reset-match').onclick = () => {
-      if (confirm('Maç sıfırlansın mı? Skorlar da sıfırlanacak.')) {
-        sock.emit('admin_cmd', { type: 'reset_match' });
-      }
-    };
-  }
-
-  if ($('adm-clear-chat')) {
-    $('adm-clear-chat').onclick = () => {
-      if (confirm('Tüm sohbet geçmişi silinsin mi?')) {
-        sock.emit('admin_cmd', { type: 'clear_chat' });
-      }
-    };
-  }
-
+  if ($('adm-pause')) $('adm-pause').onclick = () => sock.emit('admin_cmd', { type: 'toggle_pause' });
+  if ($('adm-reset-match')) $('adm-reset-match').onclick = () => {
+    if (confirm('Maç sıfırlansın mı? Skorlar da sıfırlanacak.')) sock.emit('admin_cmd', { type: 'reset_match' });
+  };
+  if ($('adm-clear-chat')) $('adm-clear-chat').onclick = () => {
+    if (confirm('Tüm sohbet geçmişi silinsin mi?')) sock.emit('admin_cmd', { type: 'clear_chat' });
+  };
   sock.on('admin_state', state => {
     const button = $('adm-pause');
     if (button && state) {
@@ -508,7 +493,6 @@ sock.on('modifier_state', data => {
       button.classList.toggle('admin-danger', !!state.paused);
     }
   });
-
   sock.on('chat_clear', () => {
     if ($('chat-messages')) $('chat-messages').textContent = '';
     addChatNotice('Sohbet geçmişi yönetici tarafından temizlendi.');

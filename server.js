@@ -59,6 +59,7 @@ const ball = {
 let nid = 0, ord = 0, cnt = [0, 0, 0];
 let sc = [0, 0], tl = MATCH_TICKS, ot = false;
 let ph = 0, pt = 0, winner = 0, scorer = '';
+let adminPaused = false;
 
 // ---------- Modifier Çarkı ----------
 // Süper Kalkan tamamen kaldırıldı.
@@ -213,7 +214,7 @@ function endMatch() {
 }
 
 function step() {
-  if (wheelPaused) return;
+  if (wheelPaused || adminPaused) return;
 
   const activePlayers = [];
   players.forEach(player => {
@@ -511,6 +512,7 @@ io.on('connection', socket => {
     if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
       socket.isAdmin = true;
       socket.emit('admin_auth', true);
+      socket.emit('admin_state', { paused: adminPaused });
     } else {
       socket.emit('admin_auth', false);
     }
@@ -518,6 +520,40 @@ io.on('connection', socket => {
 
   socket.on('admin_cmd', data => {
     if (!socket.isAdmin || !data || typeof data.type !== 'string') return;
+
+    if (data.type === 'toggle_pause') {
+      adminPaused = !adminPaused;
+      io.emit('admin_state', { paused: adminPaused });
+      io.emit('announcement', adminPaused ? 'MAÇ YÖNETİCİ TARAFINDAN DURAKLATILDI.' : 'MAÇ DEVAM EDİYOR.');
+      return;
+    }
+
+    if (data.type === 'reset_match') {
+      adminPaused = false;
+      sc = [0, 0];
+      tl = MATCH_TICKS;
+      ot = false;
+      ph = 0;
+      pt = 0;
+      winner = 0;
+      scorer = '';
+      ball.x = W / 2;
+      ball.y = H / 2;
+      ball.vx = ball.vy = 0;
+      ball.lastTouch = null;
+      players.forEach(player => { player.vx = 0; player.vy = 0; player.in = 0; });
+      setModifier(null);
+      io.emit('admin_state', { paused: false });
+      io.emit('announcement', 'MAÇ YENİDEN BAŞLATILDI.');
+      return;
+    }
+
+    if (data.type === 'clear_chat') {
+      chatHistory.length = 0;
+      io.emit('chat_clear');
+      io.emit('announcement', 'SOHBET GEÇMİŞİ TEMİZLENDİ.');
+      return;
+    }
 
     if (data.type === 'reset_ball') {
       ball.x = W / 2;
