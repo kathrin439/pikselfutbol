@@ -274,3 +274,298 @@ body:after{content:'';position:fixed;inset:0;z-index:9;pointer-events:none;backg
   .join-team-option b { font-size: 6px; }
   .team-option-mark { font-size: 11px; }
 }
+
+/* =========================================================
+   SAHA KULÜBÜ ARAYÜZÜ — daha doğal, eski usul piksel oyun dili
+   ========================================================= */
+#admin-modal .admin-dashboard,
+#joinModal .join-card,
+#update-log-modal .update-log-card {
+  border: 4px solid var(--gold) !important;
+  outline: 2px solid #000;
+  outline-offset: 3px;
+  border-radius: 0 !important;
+  background-color: #091b10 !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, #091b10 0 5px, #0b2013 5px 10px) !important;
+  background-size: 4px 4px, 4px 4px, auto !important;
+  box-shadow: 8px 8px 0 #000 !important;
+}
+
+/* Giriş ekranı: kulüp kayıt masası */
+#joinModal { background: rgba(0,0,0,.82) !important; }
+.join-card {
+  width: min(470px, 94vw) !important;
+  padding: 26px 26px 20px !important;
+  text-align: left !important;
+}
+.join-pixel-logo {
+  display: inline-block;
+  padding: 8px 10px;
+  background: var(--gold);
+  color: #07150d !important;
+  font-size: 9px !important;
+  line-height: 1.8;
+  text-shadow: none !important;
+  box-shadow: 3px 3px 0 #000;
+}
+.join-divider {
+  height: 2px !important;
+  margin: 16px 0 13px !important;
+  background: repeating-linear-gradient(90deg, var(--gold) 0 8px, transparent 8px 12px) !important;
+}
+.join-eyebrow {
+  color: #9db49f !important;
+  font: 8px 'Press Start 2P', monospace !important;
+  letter-spacing: 0 !important;
+}
+.join-card h2 {
+  margin: 13px 0 4px !important;
+  color: #fff !important;
+  font-size: clamp(14px, 2.8vw, 18px) !important;
+  line-height: 1.8 !important;
+  text-shadow: 3px 3px 0 #000 !important;
+}
+.join-description {
+  margin: 0 0 18px !important;
+  color: #b8c9b9 !important;
+  font: 21px 'VT323', monospace !important;
+}
+.join-card label,
+.join-team-title {
+  color: var(--gold) !important;
+  font-size: 8px !important;
+  letter-spacing: 0 !important;
+}
+.join-input-wrap {
+  min-height: 48px;
+  border: 2px solid #829987 !important;
+  background: #020904 !important;
+  box-shadow: inset 2px 2px 0 #000;
+}
+.join-input-wrap:focus-within {
+  border-color: var(--gold) !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+.join-card input { font: 22px 'VT323', monospace !important; }
+.join-team-title { margin-top: 18px !important; }
+.join-team-option {
+  min-height: 62px !important;
+  border: 2px solid #526c58 !important;
+  background: #06130b !important;
+  box-shadow: 2px 2px 0 #000;
+}
+.join-team-option:has(input:checked) {
+  border-color: var(--gold) !important;
+  background: #172d1d !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+.join-team-red:has(input:checked) { border-color: var(--red) !important; background: #301515 !important; }
+.join-team-blue:has(input:checked) { border-color: var(--blue) !important; background: #10223a !important; }
+.join-team-option b { font-size: 7px !important; }
+.join-team-option small { font-size: 14px !important; line-height: 1.05; }
+.join-team-note { color: #a5b7a7 !important; font-size: 17px !important; }
+.join-card button {
+  margin-top: 14px !important;
+  min-height: 48px;
+  padding: 12px 14px !important;
+  border: 2px solid #fff !important;
+  background: var(--gold) !important;
+  color: #07150d !important;
+  font-size: 8px !important;
+  box-shadow: 4px 4px 0 #000 !important;
+}
+.join-card button:hover { filter: brightness(1.06); }
+.join-bottom {
+  margin-top: 17px !important;
+  padding-top: 11px;
+  border-top: 1px dashed #58705d;
+  color: #a2b5a4 !important;
+  font: 15px 'VT323', monospace !important;
+  text-align: center;
+}
+.join-bottom span { color: var(--gold); }
+
+/* Yönetici girişi ve kontrol odası */
+#admin-modal .admin-dashboard {
+  border-width: 4px !important;
+  padding: 20px 22px !important;
+  background-color: #08190e !important;
+}
+.admin-heading {
+  border-bottom: 2px solid #526b57 !important;
+  padding-bottom: 13px !important;
+}
+.admin-eyebrow { color: #a3b7a5 !important; font-size: 7px !important; }
+.admin-heading h3 {
+  color: var(--gold) !important;
+  font-size: 13px !important;
+  text-shadow: 2px 2px 0 #000;
+}
+.admin-live {
+  padding: 6px 7px;
+  border: 1px solid #53715a;
+  background: #06130b;
+  color: #b7d5b9 !important;
+  font: 7px 'Press Start 2P', monospace !important;
+}
+.admin-live i { width: 7px !important; height: 7px !important; box-shadow: 1px 1px 0 #000 !important; }
+.admin-login-box {
+  max-width: 390px !important;
+  margin: 22px auto 12px !important;
+  padding: 19px !important;
+  border: 2px solid #607963;
+  outline: 2px solid #000;
+  background: #0b2113;
+  box-shadow: 4px 4px 0 #000;
+}
+.admin-login-stamp {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 6px 8px;
+  border: 1px dashed var(--gold);
+  color: var(--gold);
+  font: 7px 'Press Start 2P', monospace;
+}
+.admin-login-box label {
+  color: #d7e2d7 !important;
+  font-size: 8px !important;
+}
+.admin-login-box input {
+  min-height: 44px;
+  border: 2px solid #708875 !important;
+  background: #020904 !important;
+  color: var(--gold) !important;
+  font: 22px 'VT323', monospace !important;
+}
+.admin-login-box input:focus { outline: 1px solid var(--gold); }
+.admin-login-box .admin-primary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  border: 2px solid #fff !important;
+  background: var(--gold) !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  font-size: 8px !important;
+}
+.admin-login-note {
+  margin-top: 12px;
+  color: #9eb19f;
+  font: 17px 'VT323', monospace;
+  text-align: center;
+}
+.admin-group {
+  border: 1px solid #405d47 !important;
+  background: #091b10 !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+.admin-group h4 { color: var(--gold) !important; }
+.admin-group h4 span { color: #a4b9a6 !important; }
+.admin-stat {
+  border: 2px solid #405d47 !important;
+  background: #0b2113 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+.admin-stat small { color: #a6b9a8 !important; }
+.admin-stat b { text-shadow: 2px 2px 0 #000; }
+.admin-button-grid button,
+.admin-score-row button,
+.admin-player-actions button {
+  border: 2px solid #829787 !important;
+  background: #12351f !important;
+  box-shadow: 2px 2px 0 #000;
+  border-radius: 0 !important;
+}
+.admin-button-grid button:hover,
+.admin-score-row button:hover,
+.admin-player-actions button:hover {
+  background: var(--gold) !important;
+  color: #07150d !important;
+}
+.admin-player-row { border: 1px solid #405d47 !important; background: #0b2113 !important; }
+.admin-player-info b { color: #f1f5ed !important; }
+.admin-feedback { color: #b3c6b5 !important; }
+#admin-pass::placeholder,
+.admin-section-head input::placeholder,
+.admin-announce-row input::placeholder { color: #728b77; }
+.close-btn {
+  top: 9px !important;
+  right: 10px !important;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #8e4c4c;
+  background: #210d0d;
+  color: #ff7777 !important;
+  font: 22px/20px 'Chakra Petch', sans-serif !important;
+}
+
+/* Güncelleme notları artık oyun içi ilan panosu gibi */
+#update-log-modal { background: rgba(0,0,0,.82) !important; }
+.update-log-card {
+  width: min(520px, 94vw) !important;
+  padding: 22px 22px 18px !important;
+  border-color: #d8c36c !important;
+}
+.update-log-top {
+  padding: 0 42px 10px 0 !important;
+  border-bottom: 2px dashed #60745f !important;
+  color: #c7d6c6 !important;
+  font-size: 7px !important;
+}
+.update-version {
+  border: 1px solid #000;
+  background: var(--gold) !important;
+  box-shadow: 2px 2px 0 #000;
+}
+#update-log-title {
+  margin: 16px 0 4px !important;
+  color: var(--gold) !important;
+  font-size: clamp(15px, 3vw, 19px) !important;
+  text-shadow: 3px 3px 0 #000;
+}
+.update-log-date {
+  margin-bottom: 15px !important;
+  color: #a6b9a8 !important;
+  font: 16px 'VT323', monospace !important;
+}
+.update-log-list { gap: 7px !important; }
+.update-log-list li {
+  padding: 9px 11px !important;
+  border: 0 !important;
+  border-left: 4px solid var(--gold) !important;
+  background: #0b2113 !important;
+  box-shadow: 2px 2px 0 #000 !important;
+}
+.update-log-list b {
+  margin-bottom: 3px !important;
+  color: var(--gold) !important;
+  font-size: 7px !important;
+}
+.update-log-list span {
+  color: #dce8dc !important;
+  font: 19px 'VT323', monospace !important;
+  line-height: 1.15 !important;
+}
+.update-log-foot {
+  margin-top: 15px !important;
+  padding-top: 9px;
+  border-top: 1px dashed #60745f;
+  color: #b8c8b8 !important;
+  font: 18px 'VT323', monospace !important;
+}
+.update-log-x {
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #000;
+}
+@media(max-width:520px) {
+  .join-card { padding: 20px 15px 16px !important; }
+  .join-team-option { min-height: 56px !important; }
+  .join-team-option b { font-size: 6px !important; }
+  .join-team-option small { font-size: 12px !important; }
+  #admin-modal .admin-dashboard { padding: 15px 11px !important; }
+  .admin-login-box { padding: 14px !important; }
+  .update-log-card { padding: 19px 13px 15px !important; }
+}
