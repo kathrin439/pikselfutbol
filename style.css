@@ -45,3 +45,146 @@ body:after{content:'';position:fixed;inset:0;z-index:9;pointer-events:none;backg
 #admin-player-list{list-style:none;max-height:270px;overflow:auto;margin-top:12px;display:grid;gap:7px}.admin-player-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px;background:rgba(255,255,255,.045);border:1px solid rgba(234,255,234,.1)}.admin-player-info{min-width:110px;display:flex;flex-direction:column;gap:4px}.admin-player-info b{font:14px 'Chakra Petch',sans-serif;color:#fff;overflow-wrap:anywhere}.admin-player-info small{font:8px 'Press Start 2P',monospace;color:#c4d4c8}.admin-player-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px}.admin-player-actions button{font-size:7px;padding:7px}.admin-player-actions .kick-btn{background:#5b1717!important;border-color:#ff7777!important;color:#fff!important}.admin-empty{padding:16px;text-align:center;color:#9ab5a1;font:18px 'VT323',monospace}
 .admin-announce-row{display:flex;gap:8px}.admin-announce-row input{flex:1;min-width:0;padding:10px;background:#000;border:1px solid #8eae97;color:#fff;font:19px 'VT323',monospace;user-select:text}.admin-feedback{margin-top:10px;color:#8eae97;font:17px 'VT323',monospace}
 @media(max-width:650px){.admin-dashboard{padding:16px 12px}.admin-columns{grid-template-columns:1fr}.admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-player-row{align-items:flex-start;flex-direction:column}.admin-player-actions{justify-content:flex-start}.admin-section-head{align-items:flex-start;flex-direction:column}.admin-section-head input{width:100%}.admin-announce-row{flex-direction:column}}
+/* PIXEL FOOTBALL - PLAYER JOIN SCREEN */
+#joinModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background:
+    radial-gradient(ellipse at center, rgba(20, 75, 38, .35), transparent 65%),
+    rgba(0, 0, 0, .92);
+  backdrop-filter: blur(5px);
+}
+
+.join-card {
+  position: relative;
+  width: min(460px, 94vw);
+  padding: 35px 30px 24px;
+  background: linear-gradient(145deg, #10351f, #041009 75%);
+  border: 3px solid var(--gold);
+  box-shadow: 9px 9px 0 #000, 0 0 35px rgba(255, 225, 77, .15);
+  color: white;
+  text-align: center;
+  animation: joinPop .25s steps(4) both;
+}
+
+@keyframes joinPop {
+  from { opacity: 0; transform: translateY(15px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.join-pixel-logo {
+  color: var(--gold);
+  font: 11px 'Press Start 2P', monospace;
+  letter-spacing: 1px;
+}
+
+.join-divider {
+  height: 2px;
+  margin: 20px 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.join-eyebrow {
+  color: #8fb99a;
+  font: 8px 'Press Start 2P', monospace;
+}
+
+.join-card h2 {
+  margin: 18px 0 10px;
+  color: white;
+  font: clamp(14px, 3vw, 19px) 'Press Start 2P', monospace;
+  line-height: 1.8;
+}
+
+.join-description {
+  margin-bottom: 25px;
+  color: #a8c4ad;
+  font: 20px 'VT323', monospace;
+}
+
+.join-card label {
+  display: block;
+  margin-bottom: 9px;
+  text-align: left;
+  color: var(--gold);
+  font: 8px 'Press Start 2P', monospace;
+}
+
+.join-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: #020904;
+  border: 2px solid #71977b;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.join-input-wrap:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 13px rgba(255, 225, 77, .2);
+}
+
+.join-input-wrap span {
+  color: var(--gold);
+  font: 13px 'Press Start 2P', monospace;
+}
+
+.join-card input {
+  width: 100%;
+  min-width: 0;
+  padding: 15px 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: white;
+  font: 23px 'VT323', monospace;
+  user-select: text;
+}
+
+.join-card input::placeholder {
+  color: #607867;
+}
+
+.join-card button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 17px;
+  padding: 15px;
+  background: var(--gold);
+  border: 2px solid white;
+  color: #06180d;
+  font: 9px 'Press Start 2P', monospace;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform .12s, box-shadow .12s;
+}
+
+.join-card button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+.join-card button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000;
+}
+
+.join-bottom {
+  margin-top: 23px;
+  color: #77917d;
+  font: 7px 'Press Start 2P', monospace;
+  line-height: 1.8;
+}
+
+@media(max-width:480px) {
+  .join-card { padding: 27px 18px 20px; }
+  .join-pixel-logo { font-size: 9px; }
+}
