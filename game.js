@@ -64,20 +64,19 @@
   const joinBtn = $('joinBtn');
   const joinNickInput = $('joinNickInput');
 
-  if (joinBtn) {
-    joinBtn.onclick = () => {
-      const n = joinNickInput ? joinNickInput.value.trim() : '';
-      sock.emit('join_game', n);
-    };
+  function submitJoin() {
+    const n = joinNickInput ? joinNickInput.value.trim() : '';
+    const selectedTeam = document.querySelector('input[name="joinTeam"]:checked');
+    const team = selectedTeam ? selectedTeam.value : 'auto';
+    sock.emit('join_game', { nickname: n, team });
   }
+
+  if (joinBtn) joinBtn.onclick = submitJoin;
 
   if (joinNickInput) {
     joinNickInput.addEventListener('keydown', e => {
       e.stopPropagation();
-      if (e.key === 'Enter') {
-        const n = joinNickInput.value.trim();
-        sock.emit('join_game', n);
-      }
+      if (e.key === 'Enter') submitJoin();
     });
     joinNickInput.addEventListener('keyup', e => e.stopPropagation());
   }

@@ -48,6 +48,26 @@
         <span>▶</span>
         <input type="text" id="joinNickInput" placeholder="İsmini buraya yaz..." maxlength="14" autocomplete="off">
       </div>
+
+      <div class="join-team-title">TAKIMINI SEÇ</div>
+      <div class="join-team-options" role="radiogroup" aria-label="Takım seçimi">
+        <label class="join-team-option join-team-auto">
+          <input type="radio" name="joinTeam" value="auto" checked>
+          <span class="team-option-mark">◆</span>
+          <span><b>DENGELE</b><small>Önerilen</small></span>
+        </label>
+        <label class="join-team-option join-team-red">
+          <input type="radio" name="joinTeam" value="1">
+          <span class="team-option-mark">●</span>
+          <span><b>KIRMIZI</b><small>1. Takım</small></span>
+        </label>
+        <label class="join-team-option join-team-blue">
+          <input type="radio" name="joinTeam" value="2">
+          <span class="team-option-mark">●</span>
+          <span><b>MAVİ</b><small>2. Takım</small></span>
+        </label>
+      </div>
+      <p class="join-team-note">Takım seçimin doluluk durumuna göre değişebilir. Fark en fazla 1 oyuncu olur.</p>
       <button id="joinBtn"><span>OYUNA KATIL</span><span>→</span></button>
       <div class="join-bottom">WASD / OK TUŞLARI · SPACE = ŞUT</div>
     </div>

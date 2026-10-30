@@ -68,3 +68,209 @@ body:after{content:'';position:fixed;inset:0;z-index:9;pointer-events:none;backg
 .join-bottom{margin-top:23px;color:#77917d;font:7px 'Press Start 2P',monospace;line-height:1.8}
 .admin-danger{border-color:var(--red)!important;color:#fff!important;background:#672020!important}
 @media(max-width:480px){.join-card{padding:27px 18px 20px}.join-pixel-logo{font-size:9px}}
+
+/* =========================================================
+   PIXEL FOOTBALL — PIXEL ART UI PASS
+   Keskin köşeler, sınırlı palet, piksel gölgeleri ve retro HUD.
+   ========================================================= */
+:root {
+  --red: #ef4949;
+  --blue: #438be8;
+  --gold: #f4d35e;
+  --line: #dcebdc;
+  --pitch-dark: #07150d;
+  --panel: #0b2415;
+  --panel-deep: #041008;
+  --pixel-border: #b6cbb8;
+}
+
+/* Modern/parlak kart görünümünü azalt, oyunun eski piksel diline dön. */
+.modal-content,
+.modifier-wheel-panel,
+.update-log-card,
+.admin-dashboard,
+.join-card {
+  border-radius: 0 !important;
+  background: #081b10 !important;
+  box-shadow: 6px 6px 0 #000 !important;
+  backdrop-filter: none !important;
+}
+
+.modal-content,
+.modifier-wheel-panel,
+.update-log-card,
+.admin-dashboard {
+  border: 3px solid var(--gold) !important;
+}
+
+.admin-dashboard {
+  background-color: #081b10 !important;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 2px, transparent 2px 4px) !important;
+}
+
+.admin-heading,
+.admin-group,
+.admin-stat,
+.admin-player-row,
+.update-log-list li {
+  border-radius: 0 !important;
+  background: #0c2818 !important;
+  border-color: rgba(220,235,220,.28) !important;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.admin-eyebrow,
+.admin-group h4 span,
+.admin-feedback,
+.admin-live { letter-spacing: 0; }
+
+.admin-button-grid button,
+.admin-score-row button,
+.admin-player-actions button,
+.admin-primary,
+.admin-login-box button,
+#chat-form button,
+#chat-toggle,
+.update-log-x,
+.join-card button {
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 #000 !important;
+  transition: transform .08s steps(2), box-shadow .08s steps(2), background .08s linear;
+}
+
+.admin-button-grid button:active,
+.admin-score-row button:active,
+.admin-player-actions button:active,
+.admin-primary:active,
+#chat-form button:active,
+#chat-toggle:active,
+.join-card button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #000 !important;
+}
+
+.admin-stat { border: 2px solid #345b40 !important; }
+.admin-stat small { color: #a8c5ad !important; }
+.admin-stat b { text-shadow: 2px 2px 0 #000; }
+.admin-player-row { border-left: 3px solid var(--gold) !important; }
+.admin-player-info b { font-family: 'VT323', monospace !important; font-size: 22px !important; }
+.admin-player-info small { font-size: 7px !important; }
+.admin-player-actions button { font-size: 7px !important; }
+.admin-danger { background: #521b1b !important; border-color: #ef7777 !important; }
+
+#chat-panel,
+#modifier-status,
+#modifier-wheel-modal,
+#update-log-modal,
+#joinModal {
+  backdrop-filter: none !important;
+}
+
+#chat-panel { border: 3px solid var(--gold) !important; border-radius: 0 !important; }
+#chat-header { background: #173b24 !important; border-bottom: 2px solid #000; }
+#chat-messages { background: repeating-linear-gradient(0deg, #07170d 0 3px, #091c10 3px 6px); }
+#chat-input { outline: none; }
+
+#modifier-wheel-modal { background: rgba(0,0,0,.82) !important; }
+.modifier-wheel-panel { background: #081b10 !important; }
+#modifier-wheel { border-radius: 0 !important; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.modifier-wheel-center { border-radius: 0 !important; }
+
+#update-log-modal { background: rgba(0,0,0,.88) !important; }
+.update-log-card { background: #081b10 !important; }
+.update-log-list li { border-left: 3px solid var(--gold) !important; }
+
+/* Oyuncu giriş ekranı */
+#joinModal { background: rgba(0,0,0,.86) !important; }
+.join-card {
+  width: min(480px, 94vw) !important;
+  padding: 28px 26px 22px !important;
+  border: 4px solid var(--gold) !important;
+  outline: 2px solid #000;
+  outline-offset: 4px;
+  background-color: #081b10 !important;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 2px, transparent 2px 4px) !important;
+  box-shadow: 8px 8px 0 #000 !important;
+}
+.join-pixel-logo { font-size: 10px !important; text-shadow: 2px 2px 0 #000; }
+.join-divider { height: 3px !important; background: var(--gold) !important; }
+.join-eyebrow { color: #8fae96 !important; }
+.join-card h2 { text-shadow: 3px 3px 0 #000; }
+.join-description { color: #b6cbb8 !important; }
+.join-input-wrap { border: 2px solid #8fae96 !important; border-radius: 0 !important; background: #020904 !important; }
+.join-input-wrap:focus-within { border-color: var(--gold) !important; box-shadow: 3px 3px 0 #000 !important; }
+.join-card button { background: var(--gold) !important; border: 2px solid #fff !important; }
+.join-bottom { color: #8fae96 !important; }
+
+/* Takım seçimi — aynı piksel kart sistemi */
+.join-team-title {
+  margin: 22px 0 9px;
+  color: var(--gold);
+  text-align: left;
+  font: 8px 'Press Start 2P', monospace;
+}
+.join-team-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.join-team-option {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 58px;
+  margin: 0 !important;
+  padding: 8px 7px;
+  border: 2px solid #56705c;
+  background: #06130b;
+  cursor: pointer;
+  text-align: left;
+  transition: background .1s, border-color .1s, transform .1s;
+}
+.join-team-option input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.team-option-mark {
+  flex: 0 0 auto;
+  font: 15px 'Press Start 2P', monospace;
+  color: #b6cbb8;
+}
+.join-team-option b {
+  display: block;
+  color: #eaffea;
+  font: 7px 'Press Start 2P', monospace;
+  line-height: 1.7;
+}
+.join-team-option small {
+  display: block;
+  margin-top: 3px;
+  color: #9bb29f;
+  font: 15px 'VT323', monospace;
+}
+.join-team-red .team-option-mark { color: var(--red); }
+.join-team-blue .team-option-mark { color: var(--blue); }
+.join-team-auto .team-option-mark { color: var(--gold); }
+.join-team-option:has(input:checked) { border-color: var(--gold); background: #17351f; box-shadow: 3px 3px 0 #000; }
+.join-team-red:has(input:checked) { border-color: var(--red); background: #351515; }
+.join-team-blue:has(input:checked) { border-color: var(--blue); background: #102443; }
+.join-team-note {
+  margin-top: 8px;
+  color: #91a895;
+  text-align: left;
+  font: 16px 'VT323', monospace;
+  line-height: 1.2;
+}
+
+@media(max-width:480px) {
+  .join-card { padding: 23px 15px 18px !important; }
+  .join-team-options { gap: 5px; }
+  .join-team-option { gap: 4px; padding: 7px 5px; }
+  .join-team-option b { font-size: 6px; }
+  .team-option-mark { font-size: 11px; }
+}

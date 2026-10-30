@@ -434,8 +434,12 @@ io.on('connection', socket => {
   roster();
 
   // Oyuncu yalnızca katıl butonuna basınca oluşturulur.
-  socket.on('join_game', nickname => {
+  socket.on('join_game', payload => {
     if (playerRef) return;
+
+    // Eski istemcilerden gelen düz metin nick değerini de destekle.
+    const nickname = payload && typeof payload === 'object' ? payload.nickname : payload;
+    const requestedTeam = payload && typeof payload === 'object' ? String(payload.team || 'auto') : 'auto';
 
     let cleanNick = typeof nickname === 'string'
       ? nickname.replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, 14)
@@ -455,7 +459,25 @@ io.on('connection', socket => {
     };
 
     players.set(socket.id, playerRef);
-    socket.emit('joined_success', { id: playerRef.id });
+
+    // Seçilen takım ancak denge bozulmuyorsa kabul edilir.
+    // Takım farkı 1'i aşacaksa oyuncu otomatik olarak diğer takıma alınır.
+    const redCount = list(1).length;
+    const blueCount = list(2).length;
+    if (requestedTeam === '1' || requestedTeam === '2') {
+      const wanted = Number(requestedTeam);
+      const other = wanted === 1 ? 2 : 1;
+      const wantedCount = wanted === 1 ? redCount : blueCount;
+      const otherCount = wanted === 1 ? blueCount : redCount;
+
+      if (wantedCount < MAX && wantedCount <= otherCount) {
+        move(playerRef, wanted);
+      } else if (otherCount < MAX) {
+        move(playerRef, other);
+      }
+    }
+
+    socket.emit('joined_success', { id: playerRef.id, team: playerRef.t });
     socket.emit('chat_history', chatHistory);
     rebalance();
     roster();
