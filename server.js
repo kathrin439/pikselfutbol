@@ -102,7 +102,7 @@ function kickoff() {
 function roster() {
   cnt = [0, 0, 0];
   players.forEach(player => cnt[player.t]++);
-  io.emit('r', [...players.values()].map(player => [player.id, player.n, player.t]));
+  io.emit('r', [...players.values()].map(player => [player.id, player.n, player.t, mutedPlayers.has(player.id)]));
 }
 
 function move(player, team) {
@@ -473,18 +473,38 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('chat_send', rawMessage => {
-    if (!playerRef || !playerRef.t || mutedPlayers.has(playerRef.id)) return;
+  socket.on('chat_send', (rawMessage, acknowledge) => {
+    const reply = result => {
+      if (typeof acknowledge === 'function') acknowledge(result);
+    };
+    if (!playerRef) {
+      reply({ ok: false, message: 'Önce oyuna katılmalısın.' });
+      return;
+    }
+    if (mutedPlayers.has(playerRef.id)) {
+      reply({ ok: false, message: 'Sohbet yetkin kapatılmış.' });
+      return;
+    }
+    if (typeof rawMessage !== 'string') {
+      reply({ ok: false, message: 'Geçersiz mesaj.' });
+      return;
+    }
     const now = Date.now();
-    if (now - playerRef.lastChatAt < 700) return;
-    if (typeof rawMessage !== 'string') return;
+    if (now - playerRef.lastChatAt < 700) {
+      reply({ ok: false, message: 'Biraz yavaş kanka.' });
+      return;
+    }
     const message = rawMessage.replace(/[<>\u0000-\u001f\u007f]/g, '').trim().slice(0, 160);
-    if (!message) return;
+    if (!message) {
+      reply({ ok: false, message: 'Boş mesaj gönderilemez.' });
+      return;
+    }
     playerRef.lastChatAt = now;
-    const item = { id: playerRef.id, nick: playerRef.n, team: playerRef.t, message, time: now };
+    const item = { id: playerRef.id, nick: playerRef.n, team: Number(playerRef.t) || 0, message, time: now };
     chatHistory.push(item);
     if (chatHistory.length > CHAT_HISTORY_LIMIT) chatHistory.shift();
     io.emit('chat_message', item);
+    reply({ ok: true });
   });
 
   socket.on('admin_login', password => {
@@ -507,6 +527,9 @@ io.on('connection', socket => {
     } else if (data.type === 'add_score') {
       if (data.team === 1) sc[0]++;
       if (data.team === 2) sc[1]++;
+    } else if (data.type === 'remove_score') {
+      if (data.team === 1) sc[0] = Math.max(0, sc[0] - 1);
+      if (data.team === 2) sc[1] = Math.max(0, sc[1] - 1);
     } else if (data.type === 'reset_time') {
       tl = MATCH_TICKS;
       ot = false;

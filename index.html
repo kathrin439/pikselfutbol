@@ -9,20 +9,38 @@
 </head>
 <body>
   <div id="credit">11-B Emirhan Al. İyi oyunlar diler</div>
-  <div id="admin-modal" class="modal" style="display:none"><div class="modal-content">
-    <span class="close-btn" id="admin-close">&times;</span><h3>ADMIN PANELI</h3>
-    <div id="admin-login-sec"><input type="password" id="admin-pass" placeholder="Admin Şifresi" autocomplete="off"><button id="admin-login-btn">Giriş Yap</button></div>
-    <div id="admin-panel-sec" style="display:none">
-      <div class="admin-group"><h4>Maç Yönetimi</h4><button id="adm-reset-ball">Topu Sıfırla</button><button id="adm-reset-time">Süreyi Yenile (5 Dk)</button></div>
-      <div class="admin-group"><h4>Skor Ayarla</h4><button id="adm-score-red">+1 Kırmızı</button><button id="adm-score-blue">+1 Mavi</button></div>
-      <div class="admin-group"><h4>Oyuncu Listesi · Yönetim</h4><ul id="admin-player-list"></ul></div>
-      <div class="admin-group"><h4>Sunucu Duyurusu</h4><input type="text" id="adm-ann-text" placeholder="Duyuru mesajı..." maxlength="160"><button id="adm-ann-btn" class="wide">Duyuru Gönder</button></div>
+  <div id="admin-modal" class="modal" style="display:none">
+    <div class="modal-content admin-dashboard">
+      <button class="close-btn" id="admin-close" type="button" aria-label="Admin panelini kapat">×</button>
+      <div class="admin-heading"><div><span class="admin-eyebrow">PIXEL FOOTBALL / CONTROL ROOM</span><h3>ADMIN PANELİ</h3></div><span class="admin-live"><i></i> CANLI</span></div>
+      <div id="admin-login-sec" class="admin-login-box"><label for="admin-pass">YÖNETİCİ ŞİFRESİ</label><input type="password" id="admin-pass" placeholder="Admin şifresi" autocomplete="off"><button id="admin-login-btn" class="admin-primary">PANELE GİRİŞ</button></div>
+      <div id="admin-panel-sec" style="display:none">
+        <div class="admin-stats">
+          <div class="admin-stat"><small>TOPLAM</small><b id="adm-count-all">0</b></div>
+          <div class="admin-stat red-stat"><small>KIRMIZI</small><b id="adm-count-red">0</b></div>
+          <div class="admin-stat blue-stat"><small>MAVİ</small><b id="adm-count-blue">0</b></div>
+          <div class="admin-stat"><small>İZLEYİCİ</small><b id="adm-count-spec">0</b></div>
+        </div>
+        <div class="admin-columns">
+          <section class="admin-group admin-match-group"><h4><span>01</span> MAÇ KONTROLÜ</h4>
+            <div class="admin-button-grid"><button id="adm-reset-ball">TOPU SIFIRLA</button><button id="adm-reset-time">SÜREYİ 5 DK YAP</button></div>
+          </section>
+          <section class="admin-group"><h4><span>02</span> SKOR KONTROLÜ</h4>
+            <div class="admin-score-row"><b class="admin-red-label">KIRMIZI</b><button id="adm-score-red-minus" class="admin-minus">−1</button><button id="adm-score-red">+1</button></div>
+            <div class="admin-score-row"><b class="admin-blue-label">MAVİ</b><button id="adm-score-blue-minus" class="admin-minus">−1</button><button id="adm-score-blue">+1</button></div>
+          </section>
+        </div>
+        <section class="admin-group admin-players-group"><div class="admin-section-head"><h4><span>03</span> OYUNCU YÖNETİMİ</h4><input id="admin-player-search" type="search" placeholder="Oyuncu ara..." autocomplete="off"></div><ul id="admin-player-list"></ul></section>
+        <section class="admin-group"><h4><span>04</span> SUNUCU DUYURUSU</h4><div class="admin-announce-row"><input type="text" id="adm-ann-text" placeholder="Herkese duyuru gönder..." maxlength="160"><button id="adm-ann-btn" class="admin-primary">GÖNDER</button></div></section>
+        <p id="admin-feedback" class="admin-feedback" aria-live="polite">Yönetim paneli aktif.</p>
+      </div>
     </div>
   </div></div>
   <div id="joinModal"><div class="join-card"><h2>SAHAYA ÇIK</h2><input type="text" id="joinNickInput" placeholder="Takma Adın (Nick)" maxlength="14"><br><button id="joinBtn">OYUNA KATIL</button></div></div>
-  <div id="update-log-modal" role="dialog" aria-modal="true" aria-labelledby="update-log-title" style="display:none">
+  <div id="update-log-modal" role="dialog" aria-modal="true" aria-labelledby="update-log-title">
     <div class="update-log-card">
-      <div class="update-log-top"><span>PIXEL FOOTBALL</span><span class="update-version">V1.1</span></div>
+      <button id="update-log-close" class="update-log-x" type="button" aria-label="Güncelleme notlarını kapat">×</button>
+      <div class="update-log-top"><span>PIXEL FOOTBALL</span><span class="update-version">V1.2</span></div>
       <h2 id="update-log-title">GÜNCELLEME NOTLARI</h2>
       <p class="update-log-date">SON GÜNCELLEME · 30.10.2026</p>
       <ul class="update-log-list">
@@ -30,9 +48,8 @@
         <li><b>KONTROLLER</b><span>Mobil dokunmatik tuşlar eklendi, arayüzde yazarken yanlışlıkla şut çekme sorunu giderildi.</span></li>
         <li><b>MODIFIER ÇARKI</b><span>7 güçle uyumlu hâle getirildi.</span></li>
         <li><b>ADMIN PANELİ</b><span>Oyuncu yönetimi ve maç araçları iyileştirildi.</span></li>
-        <li><b>GENEL DÜZELTMELER</b><span>Arayüz ve kullanım hataları giderildi. Babanız fenerbahçe</span></li>
+        <li><b>GENEL DÜZELTMELER</b><span>Arayüz ve kullanım hataları giderildi.</span></li>
       </ul>
-      <button id="update-log-close" type="button">TAMAM, OYNAYALIM!</button>
       <p class="update-log-foot">İYİ OYUNLAR ⚽</p>
     </div>
   </div>
