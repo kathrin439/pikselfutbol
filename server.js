@@ -180,46 +180,48 @@ function normalize(x, y) {
 }
 
 
-  function movePlayer(player) {
-    let ix = (player.in & 8 ? 1 : 0) -
-            (player.in & 4 ? 1 : 0);
+function movePlayer(player) {
+  let ix = (player.in & 8 ? 1 : 0) -
+           (player.in & 4 ? 1 : 0);
 
-    let iy = (player.in & 2 ? 1 : 0) -
-            (player.in & 1 ? 1 : 0);
+  let iy = (player.in & 2 ? 1 : 0) -
+           (player.in & 1 ? 1 : 0);
 
-    if (activeModifier === 'reverse') {
-      ix = -ix;
-      iy = -iy;
-    }
-
-    const input = normalize(ix, iy);
-
-    if (input.x || input.y) {
-      const opposite =
-        player.vx * input.x +
-        player.vy * input.y;
-
-      if (opposite < -0.5) {
-        player.vx *= PLAYER_CONFIG.braking;
-        player.vy *= PLAYER_CONFIG.braking;
-      }
-
-      const multiplier =
-        activeModifier === 'speed' ? 1.45 : 1;
-
-      player.vx +=
-        input.x * PLAYER_CONFIG.acceleration * multiplier;
-
-      player.vy +=
-        input.y * PLAYER_CONFIG.acceleration * multiplier;
-    }
-
-    limitVelocity(
-      player,
-      PLAYER_CONFIG.maxSpeed *
-      (activeModifier === 'speed' ? 1.45 : 1)
-    );
+  if (activeModifier === 'reverse') {
+    ix = -ix;
+    iy = -iy;
   }
+
+  const input = normalize(ix, iy);
+
+  if (input.x || input.y) {
+    const opposite =
+      player.vx * input.x +
+      player.vy * input.y;
+
+    if (opposite < -0.5) {
+      player.vx *= PLAYER_CONFIG.braking;
+      player.vy *= PLAYER_CONFIG.braking;
+    }
+
+    const multiplier =
+      activeModifier === 'speed' ? 1.45 : 1;
+
+    player.vx +=
+      input.x * PLAYER_CONFIG.acceleration * multiplier;
+
+    player.vy +=
+      input.y * PLAYER_CONFIG.acceleration * multiplier;
+  }
+
+  const speedMultiplier =
+    activeModifier === 'speed' ? 1.45 : 1;
+
+  limitVelocity(
+    player,
+    PLAYER_CONFIG.maxSpeed * speedMultiplier
+  );
+}
 
 
 
@@ -230,7 +232,7 @@ function normalize(x, y) {
     player,
     PLAYER_CONFIG.maxSpeed * speedMultiplier
   );
-}
+
 
 
 // ---------- Fizik ----------
