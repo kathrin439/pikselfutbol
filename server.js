@@ -44,10 +44,32 @@ const SY = [
 
 // ---------- Oyuncu fizik ayarları ----------
 const PLAYER_CONFIG = {
-  radius: 24.5,
+  radius: PR,
+
+  // Her fizik adımında uygulanan ivme
   acceleration: 0.37,
-  damping: 0.88,
-  maxSpeed: 7.0
+
+  // Oyuncunun doğal momentum kaybı
+  damping: 0.94,
+
+  // Normal hareket için hız sınırı
+  maxSpeed: 7.0,
+
+  // Ters yöne hareket sırasında frenleme
+  braking: 0.965,
+
+  // Şut parametreleri
+  kick: 11.5,
+  kickRange: 28.5,
+  kickCooldown: 250,
+
+  // Şut yönünde hareketin katkısı
+  movementAimWeight: 0.28,
+
+  // Top fiziği
+  ballDamping: 0.985,
+  ballMaxSpeed: 22,
+  ballStopThreshold: 0.035
 };
 
 // ---------- Oyun durumu ----------
@@ -130,6 +152,80 @@ function rebalance() {
   }
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function limitVelocity(object, maxSpeed) {
+  const speed = Math.hypot(object.vx, object.vy);
+
+  if (speed > maxSpeed) {
+    const factor = maxSpeed / speed;
+    object.vx *= factor;
+    object.vy *= factor;
+  }
+}
+
+function normalize(x, y) {
+  const length = Math.hypot(x, y);
+
+  if (length < 0.0001) {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: x / length,
+    y: y / length
+  };
+}
+
+function movePlayer(player) {
+  let ix = (player.in & 8 ? 1 : 0) -
+           (player.in & 4 ? 1 : 0);
+
+  let iy = (player.in & 2 ? 1 : 0) -
+           (player.in & 1 ? 1 : 0);
+
+  if (activeModifier === 'reverse') {
+    ix = -ix;
+    iy = -iy;
+  }
+
+  const input = normalize(ix, iy);
+
+  if (input.x || input.y) {
+    const opposite =
+      player.vx * input.x +
+      player.vy * input.y;
+
+    // Ters yönde girişte daha güçlü frenleme
+    const braking = opposite < -0.5
+      ? PLAYER_CONFIG.braking
+      : 1;
+
+    player.vx *= braking;
+    player.vy *= braking;
+
+    const multiplier =
+      activeModifier === 'speed' ? 1.45 : 1;
+
+    limitVelocity(
+      player,
+      PLAYER_CONFIG.maxSpeed * multiplier
+    );
+  }
+
+
+  const speedMultiplier =
+    activeModifier === 'speed' ? 1.45 : 1;
+
+  limitVelocity(
+    player,
+    PLAYER_CONFIG.maxSpeed * speedMultiplier
+  );
+}
+
+
 // ---------- Fizik ----------
 function bounds(object) {
   const radius = object.r;
@@ -178,34 +274,136 @@ function bounds(object) {
   }
 }
 
+
 function collide(a, b) {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
-  const distance = Math.hypot(dx, dy);
+
+  let distance = Math.hypot(dx, dy);
   const minimum = a.r + b.r;
 
-  if (distance >= minimum || distance === 0) return;
-  if (a.n && b === ball) ball.lastTouch = a.n;
+  if (distance >= minimum) return;
 
-  const nx = dx / distance;
-  const ny = dy / distance;
+  // Merkezler tam çakışırsa deterministik yön belirle.
+  let nx, ny;
+
+  if (distance < 0.0001) {
+    nx = 1;
+    ny = 0;
+    distance = 0;
+  } else {
+    nx = dx / distance;
+    ny = dy / distance;
+  }
+
+  if (a.n && b === ball) {
+    ball.lastTouch = a.n;
+  }
+
   const inverseMass = a.im + b.im;
+  if (inverseMass <= 0) return;
+
   const overlap = minimum - distance;
+  const correction = overlap / inverseMass;
 
-  a.x -= nx * overlap * a.im / inverseMass;
-  a.y -= ny * overlap * a.im / inverseMass;
-  b.x += nx * overlap * b.im / inverseMass;
-  b.y += ny * overlap * b.im / inverseMass;
+  a.x -= nx * correction * a.im;
+  a.y -= ny * correction * a.im;
 
-  const relativeVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+  b.x += nx * correction * b.im;
+  b.y += ny * correction * b.im;
+
+  const relativeVelocity =
+    (b.vx - a.vx) * nx +
+    (b.vy - a.vy) * ny;
+
   if (relativeVelocity < 0) {
-    const impulse = -(1 + E) * relativeVelocity / inverseMass;
+    const impulse =
+      -(1 + E) * relativeVelocity / inverseMass;
+
     a.vx -= impulse * a.im * nx;
     a.vy -= impulse * a.im * ny;
+
     b.vx += impulse * b.im * nx;
     b.vy += impulse * b.im * ny;
   }
+
+  if (b === ball) {
+    limitVelocity(ball, PLAYER_CONFIG.ballMaxSpeed);
+  }
 }
+
+function shoot(player) {
+  const now = Date.now();
+
+  if (now - player.lastKickAt <
+      PLAYER_CONFIG.kickCooldown) {
+    return;
+  }
+
+  const dx = ball.x - player.x;
+  const dy = ball.y - player.y;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance > PR + ball.r +
+      PLAYER_CONFIG.kickRange) {
+    return;
+  }
+
+  // Fare hedefinden oyuncuya göre şut yönü
+  const aim = normalize(
+    player.aimX - player.x,
+    player.aimY - player.y
+  );
+
+  // Oyuncunun hareket yönü
+  const movement = normalize(player.vx, player.vy);
+
+  const weight = PLAYER_CONFIG.movementAimWeight;
+
+  let direction = normalize(
+    aim.x * (1 - weight) + movement.x * weight,
+    aim.y * (1 - weight) + movement.y * weight
+  );
+
+  // Hedef veya hareket yönü yoksa topa doğru vur.
+  if (!direction.x && !direction.y) {
+    direction = normalize(dx, dy);
+  }
+
+  if (!direction.x && !direction.y) return;
+
+  const movementSpeed = Math.hypot(
+    player.vx,
+    player.vy
+  );
+
+  const movementBonus = Math.min(
+    movementSpeed / PLAYER_CONFIG.maxSpeed,
+    1
+  ) * 0.18;
+
+  const fireMultiplier =
+    activeModifier === 'fire' ? 1.75 : 1;
+
+  const power =
+    PLAYER_CONFIG.kick *
+    (1 + movementBonus) *
+    fireMultiplier;
+
+  ball.vx += direction.x * power;
+  ball.vy += direction.y * power;
+
+  limitVelocity(ball, PLAYER_CONFIG.ballMaxSpeed);
+
+  player.lastKickAt = now;
+  player.lock = true;
+
+  ball.lastTouch = player.n;
+
+  io.emit('k', player.id);
+}
+
+
 
 function endMatch() {
   ph = 2;
@@ -216,30 +414,16 @@ function endMatch() {
 function step() {
   if (wheelPaused || adminPaused) return;
 
-  const activePlayers = [];
-  players.forEach(player => {
-    if (!player.t) return;
-    activePlayers.push(player);
+  
+const activePlayers = [];
 
-    let ix = (player.in & 8 ? 1 : 0) - (player.in & 4 ? 1 : 0);
-    let iy = (player.in & 2 ? 1 : 0) - (player.in & 1 ? 1 : 0);
+players.forEach(player => {
+  if (!player.t) return;
 
-    if (activeModifier === 'reverse') {
-      ix = -ix;
-      iy = -iy;
-    }
+  activePlayers.push(player);
+  movePlayer(player);
+});
 
-    const length = Math.hypot(ix, iy);
-    if (length) {
-      ix /= length;
-      iy /= length;
-    }
-
-    const speedMultiplier = activeModifier === 'speed' ? 1.45 : 1;
-    const acceleration = PLAYER_CONFIG.acceleration * speedMultiplier;
-    player.vx += ix * acceleration;
-    player.vy += iy * acceleration;
-  });
 
   // Mıknatıs: topu yakınındaki oyuncuya doğru çeker.
   if (activeModifier === 'magnet' && activePlayers.length) {
@@ -266,35 +450,37 @@ function step() {
     object.x += object.vx;
     object.y += object.vy;
 
-    const damping = object === ball && activeModifier === 'lowgravity'
-      ? 0.995
-      : (object.d !== undefined ? object.d : PLAYER_CONFIG.damping);
+    const damping = object === ball
+      ? (activeModifier === 'lowgravity'
+          ? 0.995
+          : PLAYER_CONFIG.ballDamping)
+      : PLAYER_CONFIG.damping;
 
     object.vx *= damping;
     object.vy *= damping;
+
+    if (object === ball) {
+      limitVelocity(ball, PLAYER_CONFIG.ballMaxSpeed);
+
+      if (Math.hypot(ball.vx, ball.vy) <
+          PLAYER_CONFIG.ballStopThreshold) {
+        ball.vx = 0;
+        ball.vy = 0;
+      }
+    }
   });
 
+  
   activePlayers.forEach(player => {
     if (player.in & 16) {
       if (!player.lock) {
-        const dx = ball.x - player.x;
-        const dy = ball.y - player.y;
-        const distance = Math.hypot(dx, dy);
-
-        if (distance > 0 && distance <= PR + BR + KICK_RANGE) {
-          const angle = Math.atan2(dy, dx);
-          const kickMultiplier = activeModifier === 'fire' ? 1.75 : 1;
-          ball.vx += Math.cos(angle) * KICK * kickMultiplier;
-          ball.vy += Math.sin(angle) * KICK * kickMultiplier;
-          player.lock = true;
-          ball.lastTouch = player.n;
-          io.emit('k', player.id);
-        }
+        shoot(player);
       }
     } else {
       player.lock = false;
     }
   });
+
 
   for (let i = 0; i < activePlayers.length; i++) {
     collide(activePlayers[i], ball);
@@ -456,6 +642,23 @@ io.on('connection', socket => {
       x: 0, y: 0, vx: 0, vy: 0,
       r: PR, im: 0.5, d: PLAYER_CONFIG.damping,
       in: 0, lock: false, lastChatAt: 0
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+
+      r: PR,
+      im: 0.5,
+      d: PLAYER_CONFIG.damping,
+
+      in: 0,
+      lock: false,
+
+      aimX: W / 2,
+      aimY: H / 2,
+      lastKickAt: 0,
+
+      lastChatAt: 0
     };
 
     players.set(socket.id, playerRef);
@@ -486,6 +689,22 @@ io.on('connection', socket => {
   socket.on('in', value => {
     if (playerRef) playerRef.in = (Number(value) | 0) & 31;
   });
+  
+  socket.on('aim', data => {
+    if (!playerRef || !playerRef.t) return;
+    if (!data || typeof data !== 'object') return;
+
+    const x = Number(data.x);
+    const y = Number(data.y);
+
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return;
+    }
+
+    playerRef.aimX = clamp(x, -GD, W + GD);
+    playerRef.aimY = clamp(y, 0, H);
+  });
+
 
   socket.on('nick', nickname => {
     if (!playerRef || typeof nickname !== 'string') return;

@@ -23,7 +23,14 @@
   };
 
   let cfg = null, me = 0, dpr = 1, vw = 0, vh = 0, scale = 1, ox = 0, oy = 0;
-  let kb = 0, mk = false, sent = 0, bannerKey = '';
+  let kb = 0;
+  let mk = false;
+  let sent = 0;
+  let bannerKey = '';
+
+  let aimX = 0;
+  let aimY = 0;
+  let lastAimSent = 0;
   let roster = new Map(), ents = new Map(), rings = [];
   const ball = { x: 0, y: 0, tx: 0, ty: 0, rot: 0, r: 0, ok: false };
   let ballVisible = true;
@@ -130,6 +137,46 @@
     const v = kb | (mk ? 16 : 0);
     if (v !== sent) { sent = v; sock.emit('in', v); }
   };
+  
+  function sendAim(event) {
+    if (!cfg || !cv || !sock.connected) return;
+
+    const now = performance.now();
+
+    // En fazla saniyede 30 nişan güncellemesi.
+    if (now - lastAimSent < 33) return;
+
+    const rect = cv.getBoundingClientRect();
+
+    const worldX =
+      (event.clientX - rect.left - ox) / scale;
+
+    const worldY =
+      (event.clientY - rect.top - oy) / scale;
+
+    aimX = clampAim(worldX, -cfg.GD, cfg.W + cfg.GD);
+    aimY = clampAim(worldY, 0, cfg.H);
+
+    lastAimSent = now;
+
+    sock.emit('aim', {
+      x: aimX,
+      y: aimY
+    });
+  }
+
+  function clampAim(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  if (cv) {
+    cv.addEventListener('pointermove', event => {
+      if (event.pointerType === 'mouse') {
+        sendAim(event);
+      }
+    });
+  }
+
 
   addEventListener('keydown', e => { 
     if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return;
