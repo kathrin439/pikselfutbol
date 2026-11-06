@@ -144,7 +144,7 @@
     const now = performance.now();
 
     // En fazla saniyede 30 nişan güncellemesi.
-    if (now - lastAimSent < 33) return;
+    if (now - lastAimSent < 16) return;
 
     const rect = cv.getBoundingClientRect();
 
@@ -190,8 +190,24 @@
     if (b) { e.preventDefault(); kb &= ~b; send(); } 
   });
 
-  addEventListener('mousedown', e => { if (e.button === 0 && !e.target.closest('button, input, textarea, .modal, #chat-panel')) { mk = true; send(); } });
-  addEventListener('mouseup', e => { if (e.button === 0) { mk = false; send(); } });
+  // Fare kontrolleri
+  if (cv) {
+    cv.addEventListener('contextmenu', e => e.preventDefault());
+
+    cv.addEventListener('mousedown', e => {
+      if (!me || !sock.connected) return;
+
+      if (e.button === 0) {
+        e.preventDefault();
+        sock.emit('shoot');
+      }
+
+      if (e.button === 2) {
+        e.preventDefault();
+        sock.emit('pass');
+      }
+    });
+  }
   // Mobil dokunmatik yön ve şut tuşları; klavye fiziğiyle aynı input bitlerini kullanır.
   const touchBits = new Map();
   document.querySelectorAll('#touch-controls [data-bit]').forEach(button => {
@@ -677,6 +693,55 @@ sock.on('modifier_state', data => {
     ctx.fillStyle = LINE; circ(W / 2, H / 2, 4); ctx.fill();
     side(1); side(2);
   }
+  // Fare yönünü gösteren nişan oku
+  function drawAimArrow(player) {
+    if (!player || !cfg) return;
+
+    const dx = aimX - player.x;
+    const dy = aimY - player.y;
+
+    const distance = Math.hypot(dx, dy);
+    if (distance < 1) return;
+
+    const angle = Math.atan2(dy, dx);
+
+    const startX = player.x + Math.cos(angle) * (cfg.PR + 5);
+    const startY = player.y + Math.sin(angle) * (cfg.PR + 5);
+
+    const length = 48;
+
+    const endX = startX + Math.cos(angle) * length;
+    const endY = startY + Math.sin(angle) * length;
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = '#ffe14d';
+    ctx.fillStyle = '#ffe14d';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(
+      endX - Math.cos(angle - 0.45) * 12,
+      endY - Math.sin(angle - 0.45) * 12
+    );
+    ctx.lineTo(
+      endX - Math.cos(angle + 0.45) * 12,
+      endY - Math.sin(angle + 0.45) * 12
+    );
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
 
   function drawPlayers(now) {
     const { PR } = cfg;
@@ -687,6 +752,7 @@ sock.on('modifier_state', data => {
       circ(e.x, e.y, PR); ctx.fillStyle = COL[r.t]; ctx.fill();
       ctx.lineWidth = e.k ? 3.5 : 2; ctx.strokeStyle = e.k ? '#fff' : '#0a0a0a'; ctx.stroke();
       if (id === me) {
+        drawAimArrow(e);
         ctx.save(); ctx.setLineDash([4, 4]); ctx.lineDashOffset = -now / 60;
         ctx.strokeStyle = '#ffe14d'; ctx.lineWidth = 2; circ(e.x, e.y, PR + 6); ctx.stroke(); ctx.restore();
       }

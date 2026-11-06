@@ -46,16 +46,16 @@ const SY = [
 const PLAYER_CONFIG = {
   radius: PR,
 
-  acceleration: 0.22,
-  damping: 0.92,
-  maxSpeed: 4.8,
-  braking: 0.90,
+  acceleration: 0.13,
+  damping: 0.86,
+  maxSpeed: 3.0,
+  braking: 0.84,
 
   kick: 13,
   kickRange: 32,
   kickCooldown: 250,
 
-  movementAimWeight: 0.08,
+  movementAimWeight: 0.04,
 
   ballDamping: 0.985,
   ballMaxSpeed: 22,
@@ -321,11 +321,10 @@ function collide(a, b) {
   }
 }
 
-function shoot(player) {
+function shoot(player, isPass = false) {
   const now = Date.now();
 
-  if (now - player.lastKickAt <
-      PLAYER_CONFIG.kickCooldown) {
+  if (now - player.lastKickAt < PLAYER_CONFIG.kickCooldown) {
     return;
   }
 
@@ -333,52 +332,37 @@ function shoot(player) {
   const dy = ball.y - player.y;
   const distance = Math.hypot(dx, dy);
 
-  if (distance > PR + ball.r +
-      PLAYER_CONFIG.kickRange) {
+  if (distance > PR + ball.r + PLAYER_CONFIG.kickRange) {
     return;
   }
 
-  // Fare yönü
-  let aim = normalize(
+  const aim = normalize(
     player.aimX - player.x,
     player.aimY - player.y
   );
 
-  // Fare yönü yoksa top yönünü kullan.
-  if (!aim.x && !aim.y) {
-    aim = normalize(dx, dy);
-  }
-
   if (!aim.x && !aim.y) return;
 
-  // Hareket yönünün şuta etkisini azalt.
-  const movement = normalize(player.vx, player.vy);
-  const weight = PLAYER_CONFIG.movementAimWeight;
+  const power = isPass ? 5.5 : PLAYER_CONFIG.kick;
 
-  let direction = normalize(
+  const frontOffset = PR + ball.r + 5;
+
+  // Topu karakterin önüne al.
+  ball.x = player.x + aim.x * frontOffset;
+  ball.y = player.y + aim.y * frontOffset;
+
+  // Karakterin hareketi topa çok az etki etsin.
+  const movement = normalize(player.vx, player.vy);
+  const weight = isPass ? 0.02 : 0.04;
+
+  const direction = normalize(
     aim.x * (1 - weight) + movement.x * weight,
     aim.y * (1 - weight) + movement.y * weight
   );
 
-  if (!direction.x && !direction.y) {
-    direction = aim;
-  }
+  ball.vx = direction.x * power;
+  ball.vy = direction.y * power;
 
-  const power = PLAYER_CONFIG.kick;
-
-  // Topa şut yönünde kuvvet uygula.
-  ball.vx += direction.x * power;
-  ball.vy += direction.y * power;
-
-  // Topun oyuncunun içinde kalmasını engelle.
-  const minimumDistance = player.r + ball.r + 2;
-
-  if (distance < minimumDistance) {
-    ball.x = player.x + direction.x * minimumDistance;
-    ball.y = player.y + direction.y * minimumDistance;
-  }
-
-  // Şut sonrası top hızını sınırla.
   limitVelocity(ball, PLAYER_CONFIG.ballMaxSpeed);
 
   player.lastKickAt = now;
@@ -680,6 +664,17 @@ io.on('connection', socket => {
 
   socket.on('in', value => {
     if (playerRef) playerRef.in = (Number(value) | 0) & 31;
+  });
+  socket.on('shoot', () => {
+    if (playerRef && playerRef.t) {
+      shoot(playerRef, false);
+    }
+  });
+
+  socket.on('pass', () => {
+    if (playerRef && playerRef.t) {
+      shoot(playerRef, true);
+    }
   });
   
   socket.on('aim', data => {
