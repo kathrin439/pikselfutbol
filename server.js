@@ -48,7 +48,7 @@ const PLAYER_CONFIG = {
 
   acceleration: 0.13,
   damping: 0.86,
-  maxSpeed: 3.0,
+  maxSpeed: 7.5,
   braking: 0.84,
 
   kick: 13,
