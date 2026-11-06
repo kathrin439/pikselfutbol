@@ -60,11 +60,11 @@
       return;
     }
 
-  status.textContent =
-    'AKTİF GÜÇ: ' + (MODIFIER_LABELS[activeModifier] || activeModifier);
+    status.textContent =
+      'AKTİF GÜÇ: ' + (MODIFIER_LABELS[activeModifier] || activeModifier);
 
-  status.classList.add('active');
-}
+    status.classList.add('active');
+  }
   const nick = $('nick');
 
   if (document.fonts) ['700 13px "Chakra Petch"', '8px "Press Start 2P"'].forEach(f => document.fonts.load(f));
