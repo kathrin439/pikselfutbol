@@ -225,16 +225,6 @@ function movePlayer(player) {
 
 
 
-  const speedMultiplier =
-    activeModifier === 'speed' ? 1.45 : 1;
-
-  limitVelocity(
-    player,
-    PLAYER_CONFIG.maxSpeed * speedMultiplier
-  );
-
-
-
 // ---------- Fizik ----------
 function bounds(object) {
   const radius = object.r;
