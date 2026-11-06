@@ -29,7 +29,7 @@ const MAX = 10;
 const LIMIT = 5;
 const MATCH_TICKS = 5 * 60 * 60;
 const STEP = 1000 / 60;
-const KICK = 11.5, KICK_RANGE = 13.5, E = 0.5;
+const E = 0.5;
 const POSTS = [[0, GY1], [0, GY2], [W, GY1], [W, GY2]];
 const SX = [
   W / 2 - 100, W / 2 - 200, W / 2 - 200,
@@ -179,41 +179,48 @@ function normalize(x, y) {
   };
 }
 
-function movePlayer(player) {
-  let ix = (player.in & 8 ? 1 : 0) -
-           (player.in & 4 ? 1 : 0);
 
-  let iy = (player.in & 2 ? 1 : 0) -
-           (player.in & 1 ? 1 : 0);
+  function movePlayer(player) {
+    let ix = (player.in & 8 ? 1 : 0) -
+            (player.in & 4 ? 1 : 0);
 
-  if (activeModifier === 'reverse') {
-    ix = -ix;
-    iy = -iy;
-  }
+    let iy = (player.in & 2 ? 1 : 0) -
+            (player.in & 1 ? 1 : 0);
 
-  const input = normalize(ix, iy);
+    if (activeModifier === 'reverse') {
+      ix = -ix;
+      iy = -iy;
+    }
 
-  if (input.x || input.y) {
-    const opposite =
-      player.vx * input.x +
-      player.vy * input.y;
+    const input = normalize(ix, iy);
 
-    // Ters yönde girişte daha güçlü frenleme
-    const braking = opposite < -0.5
-      ? PLAYER_CONFIG.braking
-      : 1;
+    if (input.x || input.y) {
+      const opposite =
+        player.vx * input.x +
+        player.vy * input.y;
 
-    player.vx *= braking;
-    player.vy *= braking;
+      if (opposite < -0.5) {
+        player.vx *= PLAYER_CONFIG.braking;
+        player.vy *= PLAYER_CONFIG.braking;
+      }
 
-    const multiplier =
-      activeModifier === 'speed' ? 1.45 : 1;
+      const multiplier =
+        activeModifier === 'speed' ? 1.45 : 1;
+
+      player.vx +=
+        input.x * PLAYER_CONFIG.acceleration * multiplier;
+
+      player.vy +=
+        input.y * PLAYER_CONFIG.acceleration * multiplier;
+    }
 
     limitVelocity(
       player,
-      PLAYER_CONFIG.maxSpeed * multiplier
+      PLAYER_CONFIG.maxSpeed *
+      (activeModifier === 'speed' ? 1.45 : 1)
     );
   }
+
 
 
   const speedMultiplier =
@@ -634,14 +641,13 @@ io.on('connection', socket => {
       cleanNick = 'Oyuncu' + (1000 + Math.floor(Math.random() * 9000));
     }
 
+    
     playerRef = {
       id: ++nid,
       n: cleanNick,
       t: 0,
       ord: ++ord,
-      x: 0, y: 0, vx: 0, vy: 0,
-      r: PR, im: 0.5, d: PLAYER_CONFIG.damping,
-      in: 0, lock: false, lastChatAt: 0
+
       x: 0,
       y: 0,
       vx: 0,
@@ -656,10 +662,11 @@ io.on('connection', socket => {
 
       aimX: W / 2,
       aimY: H / 2,
-      lastKickAt: 0,
 
+      lastKickAt: 0,
       lastChatAt: 0
     };
+
 
     players.set(socket.id, playerRef);
 
