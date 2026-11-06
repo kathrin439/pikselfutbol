@@ -46,7 +46,7 @@ const SY = [
 const PLAYER_CONFIG = {
   radius: PR,
 
-  acceleration: 0.37,
+  acceleration: 0.27,
   damping: 0.94,
   maxSpeed: 7.0,
   braking: 0.89,
