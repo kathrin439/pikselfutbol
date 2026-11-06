@@ -46,16 +46,16 @@ const SY = [
 const PLAYER_CONFIG = {
   radius: PR,
 
-  acceleration: 0.13,
-  damping: 0.86,
-  maxSpeed: 7.5,
-  braking: 0.84,
+  acceleration: 0.37,
+  damping: 0.94,
+  maxSpeed: 7.0,
+  braking: 0.89,
 
-  kick: 13,
-  kickRange: 32,
+  kick: 12,
+  kickRange: 26,
   kickCooldown: 250,
 
-  movementAimWeight: 0.04,
+  movementAimWeight: 0.21,
 
   ballDamping: 0.985,
   ballMaxSpeed: 22,
