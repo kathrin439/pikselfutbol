@@ -46,27 +46,17 @@ const SY = [
 const PLAYER_CONFIG = {
   radius: PR,
 
-  // Her fizik adımında uygulanan ivme
-  acceleration: 0.37,
+  acceleration: 0.22,
+  damping: 0.92,
+  maxSpeed: 4.8,
+  braking: 0.90,
 
-  // Oyuncunun doğal momentum kaybı
-  damping: 0.94,
-
-  // Normal hareket için hız sınırı
-  maxSpeed: 7.0,
-
-  // Ters yöne hareket sırasında frenleme
-  braking: 0.965,
-
-  // Şut parametreleri
-  kick: 11.5,
-  kickRange: 28.5,
+  kick: 13,
+  kickRange: 32,
   kickCooldown: 250,
 
-  // Şut yönünde hareketin katkısı
-  movementAimWeight: 0.28,
+  movementAimWeight: 0.08,
 
-  // Top fiziği
   ballDamping: 0.985,
   ballMaxSpeed: 22,
   ballStopThreshold: 0.035
@@ -348,15 +338,21 @@ function shoot(player) {
     return;
   }
 
-  // Fare hedefinden oyuncuya göre şut yönü
-  const aim = normalize(
+  // Fare yönü
+  let aim = normalize(
     player.aimX - player.x,
     player.aimY - player.y
   );
 
-  // Oyuncunun hareket yönü
-  const movement = normalize(player.vx, player.vy);
+  // Fare yönü yoksa top yönünü kullan.
+  if (!aim.x && !aim.y) {
+    aim = normalize(dx, dy);
+  }
 
+  if (!aim.x && !aim.y) return;
+
+  // Hareket yönünün şuta etkisini azalt.
+  const movement = normalize(player.vx, player.vy);
   const weight = PLAYER_CONFIG.movementAimWeight;
 
   let direction = normalize(
@@ -364,34 +360,25 @@ function shoot(player) {
     aim.y * (1 - weight) + movement.y * weight
   );
 
-  // Hedef veya hareket yönü yoksa topa doğru vur.
   if (!direction.x && !direction.y) {
-    direction = normalize(dx, dy);
+    direction = aim;
   }
 
-  if (!direction.x && !direction.y) return;
+  const power = PLAYER_CONFIG.kick;
 
-  const movementSpeed = Math.hypot(
-    player.vx,
-    player.vy
-  );
-
-  const movementBonus = Math.min(
-    movementSpeed / PLAYER_CONFIG.maxSpeed,
-    1
-  ) * 0.18;
-
-  const fireMultiplier =
-    activeModifier === 'fire' ? 1.75 : 1;
-
-  const power =
-    PLAYER_CONFIG.kick *
-    (1 + movementBonus) *
-    fireMultiplier;
-
+  // Topa şut yönünde kuvvet uygula.
   ball.vx += direction.x * power;
   ball.vy += direction.y * power;
 
+  // Topun oyuncunun içinde kalmasını engelle.
+  const minimumDistance = player.r + ball.r + 2;
+
+  if (distance < minimumDistance) {
+    ball.x = player.x + direction.x * minimumDistance;
+    ball.y = player.y + direction.y * minimumDistance;
+  }
+
+  // Şut sonrası top hızını sınırla.
   limitVelocity(ball, PLAYER_CONFIG.ballMaxSpeed);
 
   player.lastKickAt = now;
@@ -413,15 +400,16 @@ function endMatch() {
 function step() {
   if (wheelPaused || adminPaused) return;
 
-  
-const activePlayers = [];
+  const activePlayers = [];
 
-players.forEach(player => {
-  if (!player.t) return;
+  players.forEach(player => {
+    if (!player.t) return;
 
-  activePlayers.push(player);
-  movePlayer(player);
-});
+    activePlayers.push(player);
+    movePlayer(player);
+  });
+
+  // Fonksiyonun devamındaki diğer kodlar burada kalacak.
 
 
   // Mıknatıs: topu yakınındaki oyuncuya doğru çeker.
@@ -482,9 +470,14 @@ players.forEach(player => {
 
 
   for (let i = 0; i < activePlayers.length; i++) {
-    collide(activePlayers[i], ball);
+    const player = activePlayers[i];
+
+    // Oyuncu-top çarpışması
+    collide(player, ball);
+
+    // Oyuncu-oyuncu çarpışması
     for (let j = i + 1; j < activePlayers.length; j++) {
-      collide(activePlayers[i], activePlayers[j]);
+      collide(player, activePlayers[j]);
     }
   }
 
